@@ -95,6 +95,12 @@ export default function App() {
     localStorage.removeItem('qc_current_user');
   };
 
+  const handleRegister = (newUser: User) => {
+    setUsers(prev => [...prev, newUser]);
+    setUser(newUser);
+    localStorage.setItem('qc_current_user', JSON.stringify(newUser));
+  };
+
   if (!user) {
     return <Auth onLogin={handleLogin} error={authError} />;
   }

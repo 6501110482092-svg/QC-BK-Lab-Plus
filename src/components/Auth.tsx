@@ -19,7 +19,6 @@ export default function Auth({ onLogin, error }: AuthProps) {
 
   return (
     <div className="min-h-screen bg-[#0F4C81] flex items-center justify-center p-4">
-      {/* Background patterns */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
         <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-blue-400 rounded-full blur-[120px]"></div>
         <div className="absolute bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-indigo-400 rounded-full blur-[120px]"></div>
@@ -36,7 +35,6 @@ export default function Auth({ onLogin, error }: AuthProps) {
           </div>
           <h1 className="text-2xl font-black text-[#0F4C81] tracking-tight">QC BK Lab Plus⁺</h1>
           <p className="text-slate-400 text-sm font-medium mt-1">Authorized Access Only</p>
-          <p className="text-[10px] text-slate-300 mt-2 font-bold uppercase tracking-wider">Default Admin: <span className="text-[#0F4C81]">ADMIN</span> / Pass: <span className="text-[#0F4C81]">admin</span></p>
         </div>
 
         <div className="p-10">
@@ -50,9 +48,7 @@ export default function Auth({ onLogin, error }: AuthProps) {
             <div className="relative">
               <SquareUser className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
-                type="text"
-                required
-                value={license}
+                type="text" required value={license}
                 onChange={(e) => setLicense(e.target.value)}
                 placeholder="License Number"
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-12 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C81]/20 transition-all font-medium"
@@ -62,9 +58,7 @@ export default function Auth({ onLogin, error }: AuthProps) {
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
-                type="password"
-                required
-                value={password}
+                type="password" required value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-12 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C81]/20 transition-all font-medium"
