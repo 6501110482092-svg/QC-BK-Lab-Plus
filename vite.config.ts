@@ -19,22 +19,12 @@ export default defineConfig(({mode}) => {
       hmr: process.env.DISABLE_HMR !== 'true',
     },
     build: {
-      chunkSizeWarningLimit: 3000,
+      chunkSizeWarningLimit: 2000,
       rollupOptions: {
         output: {
-          manualChunks(id) {
-            if (id.includes('node_modules')) {
-              if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('canvg') || id.includes('html-data-uri')) {
-                return 'vendor-pdf';
-              }
-              if (id.includes('@google/genai')) {
-                return 'vendor-ai';
-              }
-              if (id.includes('lucide-react') || id.includes('motion') || id.includes('framer-motion')) {
-                return 'vendor-ui';
-              }
-              return 'vendor-core';
-            }
+          manualChunks: {
+            'vendor-lib': ['react', 'react-dom'],
+            'vendor-utils': ['jspdf', 'jspdf-autotable', 'html2canvas', 'lucide-react', 'motion'],
           }
         }
       }

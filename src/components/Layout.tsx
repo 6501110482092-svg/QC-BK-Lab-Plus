@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Beaker, FileSpreadsheet, Settings, LogOut, Bell, Award, Bot, Stethoscope } from 'lucide-react';
+import { LayoutDashboard, Beaker, FileSpreadsheet, Settings, LogOut, Bell, Award } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,8 +14,6 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'iqc', label: 'IQC Recording', icon: FileSpreadsheet },
     { id: 'eqa', label: 'EQA Analytics', icon: Award },
-    { id: 'ai', label: 'AI Advisor (QC)', icon: Bot },
-    { id: 'medical', label: 'Medical AI', icon: Stethoscope },
     { id: 'instruments', label: 'Instruments', icon: Beaker },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
