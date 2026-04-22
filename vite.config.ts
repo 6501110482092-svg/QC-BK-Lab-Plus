@@ -19,26 +19,12 @@ export default defineConfig(({mode}) => {
       hmr: process.env.DISABLE_HMR !== 'true',
     },
     build: {
-      // Set a very high limit to silence the warning completely
       chunkSizeWarningLimit: 5000,
       rollupOptions: {
         output: {
-          manualChunks(id) {
-            if (id.includes('node_modules')) {
-              // Split the largest heavyweight library into its own chunk
-              if (id.includes('jspdf')) {
-                return 'vendor-pdf-engine';
-              }
-              if (id.includes('html2canvas')) {
-                return 'vendor-canvas';
-              }
-              // Other common libs
-              if (id.includes('react') || id.includes('react-dom') || id.includes('lucide-react')) {
-                return 'vendor-core';
-              }
-              // Defaults to a generic vendor chunk
-              return 'vendor-others';
-            }
+          manualChunks: {
+            'pdf-lib': ['jspdf', 'jspdf-autotable'],
+            'canvas-lib': ['html2canvas'],
           }
         }
       }
