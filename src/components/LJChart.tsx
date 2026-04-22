@@ -5,16 +5,18 @@ interface LJChartProps {
   results: QCResult[];
   config: QCConfig;
   level: 1 | 2 | 3;
+  instrumentId: string;
 }
 
-export default function LJChart({ results, config, level }: LJChartProps) {
+export default function LJChart({ results, config, level, instrumentId }: LJChartProps) {
   const levelParams = level === 1 ? config.level1 : (level === 2 ? config.level2 : config.level3);
   if (!levelParams) return <div className="text-center py-10 text-slate-300">No parameters defined for Level {level}</div>;
   
-  const { mean, sd } = levelParams;
+  const mean = levelParams.mean;
+  const sd = levelParams.sd || 0.0001; // Avoid division by zero if SD is 0
   
   const filteredResults = results
-    .filter(r => r.level === level && r.testId === config.id)
+    .filter(r => r.level === level && r.testId === config.id && r.instrumentId === instrumentId)
     .slice(-30);
 
   const width = 600;
@@ -25,10 +27,17 @@ export default function LJChart({ results, config, level }: LJChartProps) {
 
   const yMin = mean - 4 * sd;
   const yMax = mean + 4 * sd;
-  const getY = (val: number) => padding + chartHeight - ((val - yMin) / (yMax - yMin)) * chartHeight;
+  const getY = (val: number) => {
+    const range = yMax - yMin;
+    if (range === 0) return padding + chartHeight / 2;
+    return padding + chartHeight - ((val - yMin) / range) * chartHeight;
+  };
 
-  const points = Math.max(10, filteredResults.length);
-  const getX = (index: number) => padding + (index / (points - 1)) * chartWidth;
+  const pointsCount = Math.max(10, filteredResults.length);
+  const getX = (index: number) => {
+    const divider = pointsCount > 1 ? pointsCount - 1 : 1;
+    return padding + (index / divider) * chartWidth;
+  };
 
   const yLines = [
     { val: mean + 3 * sd, label: '+3SD', color: '#ef4444' },

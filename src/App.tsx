@@ -16,6 +16,8 @@ import IQCPage from './components/IQCPage';
 import SettingsPage from './components/SettingsPage';
 import AdminPanel from './components/AdminPanel';
 import EQAPage from './components/EQAPage';
+import AIChatPanel from './components/AIChatPanel';
+import BloodTestAIPanel from './components/BloodTestAIPanel';
 import { User, QCResult, QCConfig, Instrument, EQARecord } from './types';
 import { INSTRUMENTS, QC_CONFIGS } from './constants';
 
@@ -38,39 +40,48 @@ export default function App() {
   const [instruments, setInstruments] = useState<Instrument[]>(INSTRUMENTS);
   const [eqaRecords, setEqaRecords] = useState<EQARecord[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Local Storage Sync (Robust parsing)
+  // 1. Initial Load from LocalStorage
   useEffect(() => {
-    const loadData = (key: string, setter: (val: any) => void) => {
+    const loadFromStorage = (key: string, defaultValue: any) => {
       const data = localStorage.getItem(key);
-      if (data) {
-        try {
-          const parsed = JSON.parse(data);
-          if (parsed !== null && parsed !== undefined) {
-            setter(parsed);
-          }
-        } catch (e) {
-          console.error(`Error loading ${key}:`, e);
-          localStorage.removeItem(key);
-        }
+      if (!data) return defaultValue;
+      try {
+        const parsed = JSON.parse(data);
+        return (parsed !== null && parsed !== undefined) ? parsed : defaultValue;
+      } catch (e) {
+        console.error(`Error loading ${key}:`, e);
+        return defaultValue;
       }
     };
 
-    loadData('qc_results', setResults);
-    loadData('qc_configs', setConfigs);
-    loadData('qc_insts', setInstruments);
-    loadData('qc_users', setUsers);
-    loadData('qc_eqa', setEqaRecords);
-    loadData('qc_current_user', setUser);
+    setResults(loadFromStorage('qc_results', []));
+    setConfigs(loadFromStorage('qc_configs', QC_CONFIGS));
+    setInstruments(loadFromStorage('qc_insts', INSTRUMENTS));
+    setUsers(loadFromStorage('qc_users', []));
+    setEqaRecords(loadFromStorage('qc_eqa', []));
+    
+    const savedUser = localStorage.getItem('qc_current_user');
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (e) {}
+    }
+    
+    setIsLoaded(true);
   }, []);
 
+  // 2. Save to LocalStorage (Only after initial load is complete)
   useEffect(() => { 
+    if (!isLoaded) return;
+    
     localStorage.setItem('qc_results', JSON.stringify(results));
     localStorage.setItem('qc_configs', JSON.stringify(configs));
     localStorage.setItem('qc_insts', JSON.stringify(instruments));
     localStorage.setItem('qc_users', JSON.stringify(users));
     localStorage.setItem('qc_eqa', JSON.stringify(eqaRecords));
-  }, [results, configs, instruments, users, eqaRecords]);
+  }, [results, configs, instruments, users, eqaRecords, isLoaded]);
 
   const handleLogin = (license: string, password: string) => {
     if (license === 'ADMIN' && password === 'admin') {
@@ -165,6 +176,16 @@ export default function App() {
           instruments={instruments}
         />
       )}
+
+      {activeTab === 'ai' && (
+        <AIChatPanel 
+          results={results} 
+          configs={configs} 
+          instruments={instruments} 
+        />
+      )}
+
+      {activeTab === 'medical' && <BloodTestAIPanel />}
 
       {activeTab === 'instruments' && (
         <SettingsPage

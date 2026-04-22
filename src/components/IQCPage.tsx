@@ -310,7 +310,7 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
                 </button>
               </div>
             </div>
-            <LJChart results={results} config={config} level={level} />
+            <LJChart results={results} config={config} level={level} instrumentId={selectedInst} />
             
             {/* Sigma Summary in Export Area */}
             <div className="mt-8 grid grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
