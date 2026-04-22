@@ -16,7 +16,6 @@ import IQCPage from './components/IQCPage';
 import SettingsPage from './components/SettingsPage';
 import AdminPanel from './components/AdminPanel';
 import EQAPage from './components/EQAPage';
-import AIChatPanel from './components/AIChatPanel';
 import { User, QCResult, QCConfig, Instrument, EQARecord } from './types';
 import { INSTRUMENTS, QC_CONFIGS } from './constants';
 
@@ -173,14 +172,6 @@ export default function App() {
           onDeleteEQA={id => setEqaRecords(prev => prev.filter(x => x.id !== id))}
           configs={configs}
           instruments={instruments}
-        />
-      )}
-
-      {activeTab === 'ai' && (
-        <AIChatPanel 
-          results={results} 
-          configs={configs} 
-          instruments={instruments} 
         />
       )}
 

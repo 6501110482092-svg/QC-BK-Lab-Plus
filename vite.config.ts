@@ -22,9 +22,12 @@ export default defineConfig(({mode}) => {
       chunkSizeWarningLimit: 5000,
       rollupOptions: {
         output: {
-          manualChunks: {
-            'pdf-lib': ['jspdf', 'jspdf-autotable'],
-            'canvas-lib': ['html2canvas'],
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('jspdf')) return 'vendor-pdf';
+              if (id.includes('html2canvas')) return 'vendor-canvas';
+              return 'vendor-others';
+            }
           }
         }
       }
