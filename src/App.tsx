@@ -175,6 +175,14 @@ export default function App() {
         />
       )}
 
+      {activeTab === 'personnel' && (
+        <AdminPanel 
+          users={users} 
+          onAddUser={u => setUsers(prev => [...prev, u])}
+          onDeleteUser={id => setUsers(prev => prev.filter(x => x.id !== id))}
+        />
+      )}
+
       {activeTab === 'instruments' && (
         <SettingsPage
           configs={configs}
@@ -186,17 +194,19 @@ export default function App() {
         />
       )}
 
-      {activeTab === 'settings' && user.role === 'ADMIN' && (
-        <AdminPanel 
-          users={users} 
-          onAddUser={u => setUsers(prev => [...prev, u])}
-          onDeleteUser={id => setUsers(prev => prev.filter(x => x.id !== id))}
-        />
-      )}
-      
-      {activeTab === 'settings' && user.role !== 'ADMIN' && (
-        <div className="flex flex-col items-center justify-center h-full text-slate-400">
-          <p className="font-bold">Administrative access required for user management.</p>
+      {activeTab === 'settings' && (
+        <div className="bg-white p-8 rounded-3xl border border-slate-200">
+           <h2 className="text-xl font-bold mb-4">Account Settings</h2>
+           <div className="space-y-4">
+              <div className="p-4 bg-slate-50 rounded-2xl flex justify-between items-center">
+                 <div>
+                    <p className="text-sm font-bold">{user.name}</p>
+                    <p className="text-xs text-slate-500">{user.role} - {user.licenseNumber}</p>
+                 </div>
+                 <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">ACTIVE</span>
+              </div>
+              <p className="text-xs text-slate-400 italic font-medium">To change password or update info, please contact the Lab Administrator.</p>
+           </div>
         </div>
       )}
     </Layout>
