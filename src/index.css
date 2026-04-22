@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --color-primary: #0F4C81;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 font-sans;
+  }
+}
+
+.chart-grid line {
+  stroke: #e2e8f0;
+}
+
+.chart-line {
+  stroke: #0F4C81;
+  stroke-width: 2;
+  fill: none;
+}
+
+.chart-dot {
+  fill: #0F4C81;
+}
+
+.chart-target {
+  stroke: #10b981;
+  stroke-width: 1.5;
+}
+
+.chart-warning {
+  stroke: #f59e0b;
+  stroke-dasharray: 4;
+}
+
+.chart-error {
+  stroke: #ef4444;
+  stroke-dasharray: 4;
+}
