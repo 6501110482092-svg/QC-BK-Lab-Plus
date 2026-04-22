@@ -10,12 +10,14 @@ import 'jspdf-autotable';
 interface IQCPageProps {
   results: QCResult[];
   onAddResult: (result: QCResult) => void;
+  onDeleteResult: (id: string) => void;
   configs: QCConfig[];
   instruments: Instrument[];
   eqaRecords: EQARecord[];
+  currentUser: any;
 }
 
-export default function IQCPage({ results, onAddResult, configs, instruments, eqaRecords }: IQCPageProps) {
+export default function IQCPage({ results, onAddResult, onDeleteResult, configs, instruments, eqaRecords, currentUser }: IQCPageProps) {
   const [selectedTest, setSelectedTest] = useState<string>(configs[0]?.id || '');
   const [selectedInst, setSelectedInst] = useState<string>(instruments[0]?.id || '');
   const [level, setLevel] = useState<1 | 2 | 3>(1);
@@ -47,7 +49,8 @@ export default function IQCPage({ results, onAddResult, configs, instruments, eq
       level,
       instrumentId: selectedInst,
       testId: selectedTest,
-      operatorId: 'user-1',
+      operatorId: currentUser.id,
+      operatorName: currentUser.name,
       comment,
       westgardViolations: violations,
     };
@@ -80,59 +83,90 @@ export default function IQCPage({ results, onAddResult, configs, instruments, eq
     }
   };
 
-  const handleExportPDF = () => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
+  const handleExportPDF = async () => {
+    if (!exportRef.current) return;
+    setIsExporting(true);
     
-    // Header
-    doc.setFontSize(18);
-    doc.setTextColor(15, 76, 129); // #0F4C81
-    doc.text('IQC Analysis Report', 14, 20);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Export Date: ${new Date().toLocaleString()}`, 14, 27);
-    
-    // Info Table
-    (doc as any).autoTable({
-      startY: 35,
-      head: [['Parameter', 'Detail']],
-      body: [
-        ['Test Name', config.testName],
-        ['Instrument', `${currentInstrument?.name} (${currentInstrument?.model})`],
-        ['Control Level', `Level ${level}`],
-        ['Mean', levelParams?.mean.toString()],
-        ['SD', levelParams?.sd.toString()],
-        ['Unit', config.unit],
-        ['Latest Sigma', latestEQA?.sigma.toFixed(2) || 'N/A'],
-        ['Bias %', latestEQA?.bias.toFixed(2) || 'N/A'],
-        ['CV %', latestEQA?.cv.toFixed(2) || 'N/A'],
-      ],
-      theme: 'striped',
-      headStyles: { fillStyle: '#0F4C81' }
-    });
+    try {
+      // Capture the chart area first
+      const canvas = await html2canvas(exportRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        logging: false
+      });
+      const chartImgData = canvas.toDataURL('image/jpeg', 1.0);
 
-    // Data Table
-    doc.setFontSize(12);
-    doc.setTextColor(15, 76, 129);
-    doc.text('IQC Historical Data', 14, (doc as any).lastAutoTable.finalY + 15);
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      // Header
+      doc.setFontSize(18);
+      doc.setTextColor(15, 76, 129); // #0F4C81
+      doc.text('IQC Analysis Report', 14, 20);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Export Date: ${new Date().toLocaleString()}`, 14, 27);
+      
+      // 1. Info Table
+      (doc as any).autoTable({
+        startY: 35,
+        head: [['Parameter', 'Detail']],
+        body: [
+          ['Test Name', config.testName],
+          ['Instrument', `${currentInstrument?.name} (${currentInstrument?.model})`],
+          ['Control Level', `Level ${level}`],
+          ['Mean', levelParams?.mean.toString()],
+          ['SD', levelParams?.sd.toString()],
+          ['Unit', config.unit],
+          ['Latest Sigma', latestEQA?.sigma.toFixed(2) || 'N/A'],
+          ['Bias %', latestEQA?.bias.toFixed(2) || 'N/A'],
+          ['CV %', latestEQA?.cv.toFixed(2) || 'N/A'],
+        ],
+        theme: 'striped',
+        headStyles: { fillColor: [15, 76, 129] },
+        styles: { fontSize: 9 }
+      });
 
-    const tableData = currentResults.map(r => [
-      new Date(r.date).toLocaleString(),
-      r.value,
-      ((r.value - levelParams!.mean) / levelParams!.sd).toFixed(2),
-      r.westgardViolations.length > 0 ? r.westgardViolations.join(', ') : 'PASS'
-    ]);
+      // 2. Chart Image
+      const chartY = (doc as any).lastAutoTable.finalY + 10;
+      doc.text('Levey-Jennings Chart', 14, chartY);
+      
+      const imgWidth = pageWidth - 28;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      doc.addImage(chartImgData, 'JPEG', 14, chartY + 5, imgWidth, imgHeight);
 
-    (doc as any).autoTable({
-      startY: (doc as any).lastAutoTable.finalY + 20,
-      head: [['DateTime', 'Value', 'Sigma-Z (SD)', 'Westgard Status']],
-      body: tableData,
-      theme: 'grid',
-      headStyles: { fillColor: '#0F4C81' }
-    });
+      // 3. Data Table (New Page if needed)
+      doc.addPage();
+      doc.setFontSize(14);
+      doc.setTextColor(15, 76, 129);
+      doc.text('Historical QC Data Table', 14, 20);
 
-    doc.save(`QC_Report_${config.testName}_LV${level}.pdf`);
+      const tableData = currentResults.map(r => [
+        new Date(r.date).toLocaleString('th-TH'),
+        r.operatorName,
+        r.value,
+        ((r.value - levelParams!.mean) / levelParams!.sd).toFixed(2),
+        r.westgardViolations.length > 0 ? r.westgardViolations.join(', ') : 'PASS'
+      ]);
+
+      (doc as any).autoTable({
+        startY: 30,
+        head: [['DateTime', 'Operator', 'Value', 'Sigma-Z', 'Status']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { fillColor: [15, 76, 129] },
+        styles: { fontSize: 8 }
+      });
+
+      doc.save(`QC_Report_${config.testName}_LV${level}.pdf`);
+    } catch (err) {
+      console.error('PDF Export Failed:', err);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const levelParams = level === 1 ? config.level1 : (level === 2 ? config.level2 : config.level3);
@@ -311,17 +345,20 @@ export default function IQCPage({ results, onAddResult, configs, instruments, eq
                 <thead className="bg-slate-50 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                   <tr>
                     <th className="px-6 py-3">Timestamp</th>
+                    <th className="px-6 py-3">Operator</th>
                     <th className="px-6 py-3">Value</th>
                     <th className="px-6 py-3">Sigma-Z</th>
                     <th className="px-6 py-3">Westgard</th>
+                    {currentUser.role === 'ADMIN' && <th className="px-6 py-3 text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                    {results
                     .filter(r => r.level === level && r.testId === config.id)
-                    .slice(-5).reverse().map(r => (
+                    .slice(-10).reverse().map(r => (
                       <tr key={r.id}>
-                        <td className="px-6 py-3">{new Date(r.date).toLocaleTimeString()}</td>
+                        <td className="px-6 py-3 text-xs">{new Date(r.date).toLocaleString('th-TH')}</td>
+                        <td className="px-6 py-3 font-medium text-slate-500">{r.operatorName || 'System'}</td>
                         <td className="px-6 py-3 font-mono font-bold text-slate-700">{r.value}</td>
                         <td className="px-6 py-3 font-mono text-slate-400">
                            {((r.value - currentLevelParams!.mean) / currentLevelParams!.sd).toFixed(2)}
@@ -333,6 +370,18 @@ export default function IQCPage({ results, onAddResult, configs, instruments, eq
                              </span>
                            ) : <span className="text-emerald-500 font-bold text-xs ring-1 ring-emerald-100 px-2 py-0.5 rounded">PASSED</span>}
                         </td>
+                        {currentUser.role === 'ADMIN' && (
+                          <td className="px-6 py-3 text-right">
+                             <button 
+                               onClick={() => {
+                                 if(window.confirm('Delete this record?')) onDeleteResult(r.id);
+                               }}
+                               className="text-red-400 hover:text-red-600 font-bold text-xs"
+                             >
+                               Delete
+                             </button>
+                          </td>
+                        )}
                       </tr>
                    ))}
                 </tbody>

@@ -143,15 +143,19 @@ export default function App() {
   return (
     <Layout activeTab={activeTab} setActiveTab={setActiveTab} user={user} onLogout={handleLogout}>
       {activeTab === 'dashboard' && <Dashboard results={results} />}
+      
       {activeTab === 'iqc' && (
         <IQCPage 
           results={results} 
           onAddResult={res => setResults(prev => [...prev, res])} 
+          onDeleteResult={id => setResults(prev => prev.filter(x => x.id !== id))}
           configs={configs}
           instruments={instruments}
           eqaRecords={eqaRecords}
+          currentUser={user}
         />
       )}
+
       {activeTab === 'eqa' && (
         <EQAPage 
           eqaRecords={eqaRecords}
@@ -161,6 +165,7 @@ export default function App() {
           instruments={instruments}
         />
       )}
+
       {activeTab === 'instruments' && (
         <SettingsPage
           configs={configs}
@@ -171,6 +176,7 @@ export default function App() {
           onDeleteInstrument={id => setInstruments(prev => prev.filter(x => x.id !== id))}
         />
       )}
+
       {activeTab === 'settings' && user.role === 'ADMIN' && (
         <AdminPanel 
           users={users} 
@@ -178,6 +184,7 @@ export default function App() {
           onDeleteUser={id => setUsers(prev => prev.filter(x => x.id !== id))}
         />
       )}
+      
       {activeTab === 'settings' && user.role !== 'ADMIN' && (
         <div className="flex flex-col items-center justify-center h-full text-slate-400">
           <p className="font-bold">Administrative access required for user management.</p>

@@ -14,6 +14,7 @@ export interface QCResult {
   instrumentId: string;
   testId: string;
   operatorId: string;
+  operatorName: string;
   comment?: string;
   westgardViolations: string[];
 }
