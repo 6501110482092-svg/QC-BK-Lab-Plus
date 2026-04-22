@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
-import { Plus, History, Activity, Info, TrendingUp, Award, ShieldAlert } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Plus, History, Activity, Info, TrendingUp, Award, ShieldAlert, FileDown, Image as ImageIcon, FileText } from 'lucide-react';
 import { QCResult, QCConfig, Instrument, EQARecord } from '../types';
 import { checkWestgardRules, getThaiSigmaRecommendation } from '../lib/qcLogic';
 import LJChart from './LJChart';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 interface IQCPageProps {
   results: QCResult[];
@@ -18,6 +21,9 @@ export default function IQCPage({ results, onAddResult, configs, instruments, eq
   const [level, setLevel] = useState<1 | 2 | 3>(1);
   const [value, setValue] = useState<string>('');
   const [comment, setComment] = useState<string>('');
+  const [isExporting, setIsExporting] = useState(false);
+
+  const exportRef = useRef<HTMLDivElement>(null);
 
   const config = configs.find((c) => c.id === selectedTest);
   if (!config) return <div className="text-center py-20 text-slate-400">Please register a test in settings.</div>;
@@ -50,6 +56,86 @@ export default function IQCPage({ results, onAddResult, configs, instruments, eq
     setValue('');
     setComment('');
   };
+
+  const currentResults = results.filter(r => r.level === level && r.testId === selectedTest);
+  const currentInstrument = instruments.find(i => i.id === selectedInst);
+
+  const handleExportJPG = async () => {
+    if (!exportRef.current) return;
+    setIsExporting(true);
+    try {
+      const canvas = await html2canvas(exportRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        logging: false
+      });
+      const link = document.createElement('a');
+      link.download = `QC_Report_${config.testName}_LV${level}.jpg`;
+      link.href = canvas.toDataURL('image/jpeg', 0.9);
+      link.click();
+    } catch (err) {
+      console.error('Export Failed:', err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Header
+    doc.setFontSize(18);
+    doc.setTextColor(15, 76, 129); // #0F4C81
+    doc.text('IQC Analysis Report', 14, 20);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Export Date: ${new Date().toLocaleString()}`, 14, 27);
+    
+    // Info Table
+    (doc as any).autoTable({
+      startY: 35,
+      head: [['Parameter', 'Detail']],
+      body: [
+        ['Test Name', config.testName],
+        ['Instrument', `${currentInstrument?.name} (${currentInstrument?.model})`],
+        ['Control Level', `Level ${level}`],
+        ['Mean', levelParams?.mean.toString()],
+        ['SD', levelParams?.sd.toString()],
+        ['Unit', config.unit],
+        ['Latest Sigma', latestEQA?.sigma.toFixed(2) || 'N/A'],
+        ['Bias %', latestEQA?.bias.toFixed(2) || 'N/A'],
+        ['CV %', latestEQA?.cv.toFixed(2) || 'N/A'],
+      ],
+      theme: 'striped',
+      headStyles: { fillStyle: '#0F4C81' }
+    });
+
+    // Data Table
+    doc.setFontSize(12);
+    doc.setTextColor(15, 76, 129);
+    doc.text('IQC Historical Data', 14, (doc as any).lastAutoTable.finalY + 15);
+
+    const tableData = currentResults.map(r => [
+      new Date(r.date).toLocaleString(),
+      r.value,
+      ((r.value - levelParams!.mean) / levelParams!.sd).toFixed(2),
+      r.westgardViolations.length > 0 ? r.westgardViolations.join(', ') : 'PASS'
+    ]);
+
+    (doc as any).autoTable({
+      startY: (doc as any).lastAutoTable.finalY + 20,
+      head: [['DateTime', 'Value', 'Sigma-Z (SD)', 'Westgard Status']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: '#0F4C81' }
+    });
+
+    doc.save(`QC_Report_${config.testName}_LV${level}.pdf`);
+  };
+
+  const levelParams = level === 1 ? config.level1 : (level === 2 ? config.level2 : config.level3);
 
   return (
     <div className="space-y-8">
@@ -166,14 +252,53 @@ export default function IQCPage({ results, onAddResult, configs, instruments, eq
 
         {/* Charts and History */}
         <div className="xl:col-span-8 space-y-8">
-          <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+          <div ref={exportRef} className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center space-x-3 text-[#0F4C81]">
                 <Activity size={20} />
                 <h3 className="font-bold">Levey-Jennings: {config.testName} (Level {level})</h3>
               </div>
+              <div className="flex space-x-2">
+                <button 
+                  onClick={handleExportJPG}
+                  disabled={isExporting}
+                  className="flex items-center space-x-2 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg text-xs font-bold transition-all border border-slate-200"
+                >
+                  <ImageIcon size={14} />
+                  <span>{isExporting ? 'Exporting...' : 'JPG'}</span>
+                </button>
+                <button 
+                  onClick={handleExportPDF}
+                  className="flex items-center space-x-2 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg text-xs font-bold transition-all border border-slate-200"
+                >
+                  <FileText size={14} />
+                  <span>PDF Report</span>
+                </button>
+              </div>
             </div>
             <LJChart results={results} config={config} level={level} />
+            
+            {/* Sigma Summary in Export Area */}
+            <div className="mt-8 grid grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+               <div>
+                 <p className="text-[9px] font-bold text-slate-400 uppercase">Target Mean</p>
+                 <p className="font-bold text-slate-700">{levelParams?.mean}</p>
+               </div>
+               <div>
+                 <p className="text-[9px] font-bold text-slate-400 uppercase">Target SD</p>
+                 <p className="font-bold text-slate-700 text-sm">{levelParams?.sd}</p>
+               </div>
+               <div>
+                 <p className="text-[9px] font-bold text-slate-400 uppercase">Bias %</p>
+                 <p className="font-bold text-slate-700 text-sm">{latestEQA?.bias.toFixed(2) || '0.00'}%</p>
+               </div>
+               <div>
+                 <p className="text-[9px] font-bold text-slate-400 uppercase">Six Sigma</p>
+                 <p className={`font-black text-sm ${latestEQA && latestEQA.sigma >= 6 ? 'text-emerald-600' : 'text-[#0F4C81]'}`}>
+                   {latestEQA?.sigma.toFixed(2) || 'N/A'}
+                 </p>
+               </div>
+            </div>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">

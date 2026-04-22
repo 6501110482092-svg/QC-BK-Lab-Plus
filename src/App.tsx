@@ -95,6 +95,41 @@ export default function App() {
     localStorage.removeItem('qc_current_user');
   };
 
+  // Inactivity Timer (15 minutes)
+  useEffect(() => {
+    if (!user) return;
+
+    const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes in ms
+    let timeoutId: number;
+
+    const resetTimer = () => {
+      if (timeoutId) window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(() => {
+        handleLogout();
+        alert('Session expired due to inactivity. Please login again.');
+      }, INACTIVITY_LIMIT);
+    };
+
+    // Events to track user activity
+    const activityEvents = [
+      'mousedown', 'mousemove', 'keypress', 
+      'scroll', 'touchstart', 'click'
+    ];
+
+    activityEvents.forEach(event => {
+      window.addEventListener(event, resetTimer);
+    });
+
+    resetTimer(); // Initialize timer
+
+    return () => {
+      if (timeoutId) window.clearTimeout(timeoutId);
+      activityEvents.forEach(event => {
+        window.removeEventListener(event, resetTimer);
+      });
+    };
+  }, [user]);
+
   const handleRegister = (newUser: User) => {
     setUsers(prev => [...prev, newUser]);
     setUser(newUser);
