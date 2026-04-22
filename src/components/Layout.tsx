@@ -14,10 +14,12 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'iqc', label: 'IQC Recording', icon: FileSpreadsheet },
     { id: 'eqa', label: 'EQA Analytics', icon: Award },
-    { id: 'personnel', label: 'Lab Staff', icon: Users },
+    { id: 'personnel', label: 'Lab Staff', icon: Users, adminOnly: true },
     { id: 'instruments', label: 'Instruments', icon: Beaker },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
+
+  const filteredMenuItems = menuItems.filter(item => !item.adminOnly || user?.role === 'ADMIN');
 
   return (
     <div className="flex h-screen bg-slate-50 text-slate-900">
@@ -29,7 +31,7 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
         </div>
         
         <nav className="flex-1 p-4 space-y-2">
-          {menuItems.map((item) => (
+          {filteredMenuItems.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
@@ -67,7 +69,7 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
         {/* Header */}
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8">
           <h2 className="text-lg font-semibold text-slate-800">
-            {menuItems.find(i => i.id === activeTab)?.label}
+            {filteredMenuItems.find(i => i.id === activeTab)?.label}
           </h2>
           <div className="flex items-center space-x-4">
             <button className="relative p-2 text-slate-400 hover:text-slate-600 transition-colors">

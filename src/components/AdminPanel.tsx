@@ -9,7 +9,7 @@ interface AdminPanelProps {
 }
 
 export default function AdminPanel({ users, onAddUser, onDeleteUser }: AdminPanelProps) {
-  const [newUser, setNewUser] = useState({ name: '', license: '', password: '', role: 'MT' as 'MT' | 'MD' });
+  const [newUser, setNewUser] = useState({ name: '', license: '', password: '', role: 'MT' as 'MT' | 'MD' | 'ADMIN' });
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,6 +95,7 @@ export default function AdminPanel({ users, onAddUser, onDeleteUser }: AdminPane
                 >
                   <option value="MT">นักเทคนิคการแพทย์ (MT)</option>
                   <option value="MD">พยาธิแพทย์ (MD)</option>
+                  <option value="ADMIN">ผู้ดูแลระบบ (ADMIN)</option>
                 </select>
               </div>
               <button type="submit" className="w-full py-4 bg-[#0F4C81] text-white rounded-xl font-bold shadow-lg shadow-[#0F4C81]/20 hover:bg-[#155e9c] active:scale-[0.98] transition-all flex items-center justify-center space-x-2">

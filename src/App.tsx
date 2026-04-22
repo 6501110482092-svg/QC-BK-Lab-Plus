@@ -175,12 +175,22 @@ export default function App() {
         />
       )}
 
-      {activeTab === 'personnel' && (
+      {activeTab === 'personnel' && user.role === 'ADMIN' && (
         <AdminPanel 
           users={users} 
           onAddUser={u => setUsers(prev => [...prev, u])}
           onDeleteUser={id => setUsers(prev => prev.filter(x => x.id !== id))}
         />
+      )}
+
+      {activeTab === 'personnel' && user.role !== 'ADMIN' && (
+        <div className="flex flex-col items-center justify-center h-full text-slate-400 bg-white rounded-3xl border border-slate-200 p-12">
+          <div className="p-4 bg-red-50 text-red-500 rounded-full mb-4">
+             <Users size={48} />
+          </div>
+          <p className="font-black text-xl text-slate-800">การเข้าถึงถูกจำกัด</p>
+          <p className="font-medium">เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่มีสิทธิ์จัดการรายชื่อพนักงาน</p>
+        </div>
       )}
 
       {activeTab === 'instruments' && (
