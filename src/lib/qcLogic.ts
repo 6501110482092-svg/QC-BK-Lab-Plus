@@ -8,66 +8,104 @@ export function checkWestgardRules(
   sigma?: number
 ): string[] {
   const violations: string[] = [];
-  const levelParams = level === 1 ? config.level1 : (level === 2 ? config.level2 : config.level3);
-  if (!levelParams) return [];
-  
-  const { mean, sd } = levelParams;
-  const zScore = (currentValue - mean) / sd;
-  const absZ = Math.abs(zScore);
 
-  // All points from this test/level
-  const history = previousResults.filter((r) => r.level === level && r.testId === config.id);
-  const lastResults = history.slice(-9); // Need up to 9 previous points for 10x
+  const getZScore = (val: number, lvl: 1 | 2 | 3) => {
+    const params = lvl === 1 ? config.level1 : (lvl === 2 ? config.level2 : config.level3);
+    if (!params) return 0;
+    return (val - params.mean) / params.sd;
+  };
 
-  // Tiered Rejection Logic based on Sigma
-  // 6 Sigma: Only 1-3s
-  // 5 Sigma: 1-3s, 2-2s, R-4s
-  // 4 Sigma: 1-3s, 2-2s, R-4s, 4-1s
-  // <4 Sigma: 1-3s, 2-2s, R-4s, 4-1s, 10x
-
+  const currentZ = getZScore(currentValue, level);
+  const currentAbsZ = Math.abs(currentZ);
   const s = sigma || 0;
 
-  // 1-3s Rejection (Always checked)
-  if (absZ > 3) violations.push('1-3s');
+  // 1. Across Time Logic (Current level only)
+  const levelHistory = previousResults
+    .filter((r) => r.level === level && r.testId === config.id)
+    .slice(-10); // History of THIS level
 
-  // Rules for Sigma < 6
+  // 1-3s Rejection
+  if (currentAbsZ > 3) violations.push('1-3s (Across Time)');
+
   if (s < 6) {
-    // 2-2s
-    if (lastResults.length >= 1) {
-      const prev = lastResults[lastResults.length - 1];
-      const prevZ = (prev.value - mean) / sd;
-      if (absZ > 2 && Math.abs(prevZ) > 2 && Math.sign(zScore) === Math.sign(prevZ)) {
-        violations.push('2-2s');
+    // 2-2s (Across Time)
+    if (levelHistory.length >= 1) {
+      const prev = levelHistory[levelHistory.length - 1];
+      const prevZ = getZScore(prev.value, level);
+      if (currentAbsZ > 2 && Math.abs(prevZ) > 2 && Math.sign(currentZ) === Math.sign(prevZ)) {
+        violations.push('2-2s (Across Time)');
       }
 
-      // R-4s
-      if (Math.abs(zScore - prevZ) > 4) {
-        violations.push('R-4s');
+      // R-4s (Across Time)
+      if (Math.abs(currentZ - prevZ) > 4) {
+        violations.push('R-4s (Across Time)');
       }
     }
   }
 
-  // Rules for Sigma < 5
-  if (s < 5 && lastResults.length >= 3) {
-    // 4-1s: 4 consecutive results > 1SD on the same side
-    const last4 = [...lastResults.slice(-3), { value: currentValue }];
-    const last4Z = last4.map(r => (r.value - mean) / sd);
+  if (s < 5 && levelHistory.length >= 3) {
+    // 4-1s (Across Time)
+    const last4Z = [...levelHistory.slice(-3).map(r => getZScore(r.value, level)), currentZ];
     if (last4Z.every(z => Math.abs(z) > 1 && Math.sign(z) === Math.sign(last4Z[0]))) {
-      violations.push('4-1s');
+      violations.push('4-1s (Across Time)');
     }
   }
 
-  // Rules for Sigma < 4
-  if (s < 4 && lastResults.length >= 9) {
-    // 10x: 10 consecutive results on same side of mean
-    const last10 = [...lastResults, { value: currentValue }];
-    const last10Z = last10.map(r => (r.value - mean) / sd);
+  if (s < 4 && levelHistory.length >= 9) {
+    // 10x (Across Time)
+    const last10Z = [...levelHistory.map(r => getZScore(r.value, level)), currentZ];
     if (last10Z.every(z => Math.sign(z) === Math.sign(last10Z[0]))) {
-      violations.push('10x');
+      violations.push('10x (Across Time)');
     }
   }
 
-  return violations;
+  // 2. Across Material Logic (Compare with latest of other levels)
+  // Get latest results for ALL levels of this test
+  const otherLevels: (1 | 2 | 3)[] = ([1, 2, 3] as (1 | 2 | 3)[]).filter(l => l !== level);
+  const latestOfOtherLevels = otherLevels.map(l => {
+    const params = l === 1 ? config.level1 : (l === 2 ? config.level2 : config.level3);
+    if (!params) return null;
+    return previousResults.filter(r => r.level === l && r.testId === config.id).pop();
+  }).filter(r => r !== undefined && r !== null) as QCResult[];
+
+  if (latestOfOtherLevels.length > 0) {
+    // 2-2s (Across Material)
+    latestOfOtherLevels.forEach(other => {
+      const otherZ = getZScore(other.value, other.level as any);
+      if (currentAbsZ > 2 && Math.abs(otherZ) > 2 && Math.sign(currentZ) === Math.sign(otherZ)) {
+        violations.push('2-2s (Across Material)');
+      }
+
+      // R-4s (Across Material)
+      if (Math.abs(currentZ - otherZ) > 4) {
+        violations.push('R-4s (Across Material)');
+      }
+    });
+
+    // 4-1s (Across Material) - Combined 4 points across levels
+    // Typically: current level (2 points) + other level (2 points)
+    // For simplicity: check 4 total across all levels
+    const allRecent = [...previousResults.filter(r => r.testId === config.id).slice(-3), { value: currentValue, level }];
+    const allRecentZ = allRecent.map(r => getZScore(r.value, r.level as any));
+    if (allRecentZ.length >= 4 && s < 5) {
+      const last4Z = allRecentZ.slice(-4);
+      if (last4Z.every(z => Math.abs(z) > 1 && Math.sign(z) === Math.sign(last4Z[0]))) {
+        violations.push('4-1s (Across Material)');
+      }
+    }
+
+    // 10x (Across Material)
+    const allHistory = [...previousResults.filter(r => r.testId === config.id), { value: currentValue, level }];
+    if (allHistory.length >= 10 && s < 4) {
+      const last10Z = allHistory.slice(-10).map(r => getZScore(r.value, r.level as any));
+      if (last10Z.every(z => Math.sign(z) === Math.sign(last10Z[0]))) {
+        violations.push('10x (Across Material)');
+      }
+    }
+  }
+
+  // Remove duplicates (e.g. if a rule is triggered multiple times)
+  return Array.from(new Set(violations));
 }
 
 export function calculateEQASigma(
