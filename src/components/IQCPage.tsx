@@ -1,11 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { Plus, History, Activity, Info, TrendingUp, Award, ShieldAlert, FileDown, Image as ImageIcon, FileText } from 'lucide-react';
+import { Plus, History, Activity, Info, TrendingUp, Award, ShieldAlert, FileText, X, Printer, Camera } from 'lucide-react';
 import { QCResult, QCConfig, Instrument, EQARecord } from '../types';
 import { checkWestgardRules, getThaiSigmaRecommendation } from '../lib/qcLogic';
 import LJChart from './LJChart';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 interface IQCPageProps {
   results: QCResult[];
@@ -23,7 +20,7 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
   const [level, setLevel] = useState<1 | 2 | 3>(1);
   const [value, setValue] = useState<string>('');
   const [comment, setComment] = useState<string>('');
-  const [isExporting, setIsExporting] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '3m' | 'all'>('30d');
 
   const exportRef = useRef<HTMLDivElement>(null);
@@ -76,111 +73,6 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
 
     return filtered.filter(r => new Date(r.date) >= cutoff);
   }, [results, level, selectedTest, selectedInst, dateRange]);
-
-  const handleExportPDF = async () => {
-    if (!exportRef.current) return;
-    setIsExporting(true);
-    
-    try {
-      // Capture the chart area first
-      const chartElement = exportRef.current;
-      if (!chartElement) throw new Error('Chart element not found');
-
-      const canvas = await html2canvas(chartElement, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        useCORS: true,
-        logging: false,
-        allowTaint: true,
-        onclone: (clonedDoc) => {
-          // Sometimes useful to ensure styles are applied in the clone
-          const el = clonedDoc.getElementById('export-area');
-          if (el) el.style.padding = '20px';
-        }
-      });
-      
-      const chartImgData = canvas.toDataURL('image/jpeg', 0.95);
-
-      const doc = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 14;
-      
-      // Header
-      doc.setFontSize(18);
-      doc.setTextColor(15, 76, 129); // #0F4C81
-      doc.text('IQC Analysis Report', margin, 20);
-      
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text(`Export Date: ${new Date().toLocaleString('th-TH')}`, margin, 27);
-      
-      // 1. Info Table
-      autoTable(doc, {
-        startY: 35,
-        head: [['Parameter', 'Detail']],
-        body: [
-          ['Test Name', config.testName],
-          ['Instrument', `${currentInstrument?.name} (${currentInstrument?.model})`],
-          ['Control Level', `Control Level ${level}`],
-          ['Mean', levelParams?.mean.toString() || '0'],
-          ['SD', levelParams?.sd.toString() || '0'],
-          ['CV %', `${levelParams?.cv?.toString() || '0'}%`],
-          ['Unit', config.unit],
-          ['Latest Sigma', latestEQA?.sigma.toFixed(2) || 'N/A'],
-          ['Bias %', latestEQA?.bias.toFixed(2) || 'N/A'],
-        ],
-        theme: 'striped',
-        headStyles: { fillColor: [15, 76, 129] },
-        styles: { fontSize: 9 }
-      });
-
-      // 2. Chart Image
-      const finalY = (doc as any).lastAutoTable.finalY || 100;
-      const chartY = finalY + 10;
-      doc.text('Levey-Jennings Chart & Statistics Summary', margin, chartY);
-      
-      const imgWidth = pageWidth - (margin * 2);
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      // Check if we need a new page for the chart
-      if (chartY + imgHeight + 10 > doc.internal.pageSize.getHeight()) {
-        doc.addPage();
-        doc.addImage(chartImgData, 'JPEG', margin, 15, imgWidth, imgHeight);
-      } else {
-        doc.addImage(chartImgData, 'JPEG', margin, chartY + 5, imgWidth, imgHeight);
-      }
-
-      // 3. Data Table (Always new page for clarity)
-      doc.addPage();
-      doc.setFontSize(14);
-      doc.setTextColor(15, 76, 129);
-      doc.text('Historical QC Data Table', margin, 20);
-
-      const tableData = filteredResults.map(r => [
-        new Date(r.date).toLocaleString('th-TH'),
-        r.operatorName,
-        r.value,
-        levelParams ? ((r.value - levelParams.mean) / levelParams.sd).toFixed(2) : 'N/A',
-        r.westgardViolations.length > 0 ? r.westgardViolations.join(', ') : 'PASS'
-      ]);
-
-      autoTable(doc, {
-        startY: 30,
-        head: [['DateTime', 'Operator', 'Value', 'Sigma-Z', 'Status']],
-        body: tableData,
-        theme: 'grid',
-        headStyles: { fillColor: [15, 76, 129] },
-        styles: { fontSize: 8 }
-      });
-
-      doc.save(`QC_Report_${config.testName}_LV${level}.pdf`);
-    } catch (err) {
-      console.error('PDF Export Failed:', err);
-      alert('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF: ' + (err instanceof Error ? err.message : String(err)));
-    } finally {
-      setIsExporting(false);
-    }
-  };
 
   const levelParams = level === 1 ? config.level1 : (level === 2 ? config.level2 : config.level3);
 
@@ -325,12 +217,11 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
               </div>
               <div className="flex space-x-2">
                 <button 
-                  onClick={handleExportPDF}
-                  disabled={isExporting}
-                  className="flex items-center space-x-2 px-4 py-2 bg-[#0F4C81] hover:bg-[#0b3a63] text-white rounded-xl text-xs font-black transition-all shadow-lg shadow-blue-900/20 disabled:opacity-50"
+                  onClick={() => setShowReport(true)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-[#0F4C81] hover:bg-[#0b3a63] text-white rounded-xl text-xs font-black transition-all shadow-lg shadow-blue-900/20"
                 >
                   <FileText size={14} />
-                  <span>{isExporting ? 'กำลังสร้าง PDF...' : 'Download PDF Report'}</span>
+                  <span>View Full Report</span>
                 </button>
               </div>
             </div>
@@ -417,6 +308,195 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
           </div>
         </div>
       </div>
+
+      <ReportModal
+        isOpen={showReport}
+        onClose={() => setShowReport(false)}
+        config={config}
+        level={level}
+        instrument={currentInstrument}
+        levelParams={levelParams}
+        eqa={latestEQA}
+        results={filteredResults}
+      />
     </div>
   );
+}
+
+function ReportModal({ 
+  isOpen, 
+  onClose, 
+  config, 
+  level, 
+  instrument, 
+  levelParams, 
+  eqa, 
+  results 
+}: { 
+  isOpen: boolean, 
+  onClose: () => void, 
+  config: QCConfig, 
+  level: number, 
+  instrument?: Instrument, 
+  levelParams?: any, 
+  eqa?: EQARecord, 
+  results: QCResult[] 
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto cursor-pointer"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="bg-white w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl my-8 cursor-default" onClick={(e) => e.stopPropagation()}>
+        <div className="sticky top-0 bg-white px-8 py-4 border-b flex items-center justify-between z-10">
+           <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-50 text-[#0F4C81] rounded-lg">
+                <Camera size={20} />
+              </div>
+              <div>
+                <h3 className="font-black text-slate-800">IQC Full Report View</h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Screenshot Mode (กรุณาถ่ายภาพหน้าจอนี้เก็บไว้)</p>
+              </div>
+           </div>
+           <div className="flex items-center space-x-3">
+              <button 
+                onClick={() => window.print()}
+                className="flex items-center space-x-1 px-3 py-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                title="Print to PDF"
+              >
+                <Printer size={18} />
+                <span className="text-xs font-bold">พิมพ์/PDF</span>
+              </button>
+              <button 
+                onClick={onClose}
+                className="flex items-center space-x-1 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-all border border-red-100 shadow-sm shadow-red-200/50"
+                title="Close"
+              >
+                <X size={18} />
+                <span className="text-xs font-black uppercase">ปิดหน้าจอ</span>
+              </button>
+           </div>
+        </div>
+
+        <div className="p-10 space-y-8 print:p-0" id="print-area">
+          {/* Header */}
+          <div className="flex justify-between items-start border-b-2 border-slate-900 pb-6">
+            <div>
+              <h1 className="text-3xl font-black text-[#0F4C81] mb-1">INTERNAL QUALITY CONTROL REPORT</h1>
+              <div className="flex items-center space-x-4 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                 <span>{config.testName}</span>
+                 <span className="w-1.5 h-1.5 bg-slate-200 rounded-full"></span>
+                 <span>Level {level}</span>
+                 <span className="w-1.5 h-1.5 bg-slate-200 rounded-full"></span>
+                 <span>{new Date().toLocaleDateString('th-TH')}</span>
+              </div>
+            </div>
+            <div className="text-right">
+               <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Lab Name</p>
+               <p className="text-sm font-black text-slate-800">BK LAB PLUS (IQC System)</p>
+            </div>
+          </div>
+
+          {/* Info Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+             <div>
+                <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Instrument</p>
+                <p className="text-xs font-black text-slate-700">{instrument?.name || 'N/A'}</p>
+                <p className="text-[10px] font-bold text-slate-400">{instrument?.model || '-'}</p>
+             </div>
+             <div>
+                <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Target Params</p>
+                <div className="text-xs font-black text-slate-700 space-y-0.5">
+                   <p>Mean: {levelParams?.mean}</p>
+                   <p>SD: {levelParams?.sd}</p>
+                   <p>CV: {levelParams?.cv}%</p>
+                </div>
+             </div>
+             <div>
+                <p className="text-[9px] font-black text-slate-400 uppercase mb-1">EQA Comparison</p>
+                <div className="text-xs font-black text-slate-700 space-y-0.5">
+                   <p>Sigma: {eqa?.sigma.toFixed(2) || 'N/A'}</p>
+                   <p>Bias: {eqa?.bias.toFixed(2) || '0'}%</p>
+                </div>
+             </div>
+             <div>
+                <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Unit</p>
+                <p className="text-lg font-black text-[#0F4C81]">{config.unit}</p>
+             </div>
+          </div>
+
+          {/* Chart Section */}
+          <div className="space-y-4">
+             <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">Levey-Jennings Chart Analysis</h4>
+             <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm overflow-hidden h-[350px]">
+                <LJChart results={results} config={config} level={level as any} instrumentId={instrument?.id || ''} />
+             </div>
+          </div>
+
+          {/* Data Table */}
+          <div className="space-y-4">
+             <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">Raw QC History (Current View)</h4>
+             <div className="overflow-hidden rounded-2xl border border-slate-100">
+                <table className="w-full text-left text-[11px]">
+                  <thead className="bg-[#0F4C81] text-white font-black uppercase tracking-wider">
+                    <tr>
+                      <th className="px-4 py-3">Timestamp</th>
+                      <th className="px-4 py-3">Operator</th>
+                      <th className="px-4 py-3">Value</th>
+                      <th className="px-4 py-3">Z-Score</th>
+                      <th className="px-4 py-3">Status / Violations</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {results.slice().reverse().map(r => (
+                      <tr key={r.id}>
+                        <td className="px-4 py-2.5 font-bold text-slate-500">{new Date(r.date).toLocaleString('th-TH')}</td>
+                        <td className="px-4 py-2.5">{r.operatorName}</td>
+                        <td className="px-4 py-2.5 font-black text-slate-800">{r.value}</td>
+                        <td className="px-4 py-2.5 text-slate-400">
+                           {((r.value - levelParams!.mean) / levelParams!.sd).toFixed(2)}
+                        </td>
+                        <td className="px-4 py-2.5">
+                           {r.westgardViolations.length > 0 ? (
+                             <span className="text-red-600 font-bold">{r.westgardViolations.join(', ')}</span>
+                           ) : <span className="text-emerald-600 font-black">PASS</span>}
+                        </td>
+                      </tr>
+                    ))}
+                    {results.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-8 text-center text-slate-300 italic font-bold">No data record in this period</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+             </div>
+          </div>
+
+          {/* Footer Signature */}
+          <div className="flex justify-between items-end pt-12 border-t border-dashed border-slate-200 mt-12">
+             <div className="space-y-4">
+                <p className="text-[10px] font-black text-slate-400 uppercase mb-8">Operator / Reviewer Signature</p>
+                <div className="w-48 border-b-2 border-slate-900"></div>
+                <p className="text-[11px] font-bold text-slate-800">Date: ____/____/____</p>
+             </div>
+             <div className="text-right">
+                <p className="text-[9px] font-bold text-slate-300">Generated by BK-LAB IQC System v2.0</p>
+             </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Report Modal Backdrop logic */}
+      <ReportModalPortal />
+    </div>
+  );
+}
+
+function ReportModalPortal() {
+  return null; // Just to avoid unused warning in block, handled by parent
 }
