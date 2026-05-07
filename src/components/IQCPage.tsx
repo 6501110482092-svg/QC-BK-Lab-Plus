@@ -40,7 +40,7 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
     if (!value || !currentLevelParams) return;
 
     const numValue = parseFloat(value);
-    const violations = checkWestgardRules(numValue, results, config, level, latestEQA?.sigma);
+    const violations = checkWestgardRules(numValue, results, config, level, selectedInst, latestEQA?.sigma);
 
     const newResult: QCResult = {
       id: Math.random().toString(36).substr(2, 9),
@@ -60,7 +60,7 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
     setComment('');
   };
 
-  const currentResults = results.filter(r => r.level === level && r.testId === selectedTest);
+  const currentResults = results.filter(r => r.level === level && r.testId === selectedTest && r.instrumentId === selectedInst);
   const currentInstrument = instruments.find(i => i.id === selectedInst);
 
   const handleExportJPG = async () => {
@@ -354,7 +354,7 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                    {results
-                    .filter(r => r.level === level && r.testId === config.id)
+                    .filter(r => r.level === level && r.testId === config.id && r.instrumentId === selectedInst)
                     .slice(-10).reverse().map(r => (
                       <tr key={r.id}>
                         <td className="px-6 py-3 text-xs">{new Date(r.date).toLocaleString('th-TH')}</td>

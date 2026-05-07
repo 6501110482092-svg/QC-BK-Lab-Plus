@@ -5,6 +5,7 @@ export function checkWestgardRules(
   previousResults: QCResult[],
   config: QCConfig,
   level: 1 | 2 | 3,
+  instrumentId: string,
   sigma?: number
 ): string[] {
   const violations: string[] = [];
@@ -19,10 +20,10 @@ export function checkWestgardRules(
   const currentAbsZ = Math.abs(currentZ);
   const s = sigma || 0;
 
-  // 1. Across Time Logic (Current level only)
+  // 1. Across Time Logic (Current level + Current instrument only)
   const levelHistory = previousResults
-    .filter((r) => r.level === level && r.testId === config.id)
-    .slice(-10); // History of THIS level
+    .filter((r) => r.level === level && r.testId === config.id && r.instrumentId === instrumentId)
+    .slice(-10); // History of THIS level on THIS instrument
 
   // 1-3s Rejection
   if (currentAbsZ > 3) violations.push('1-3s (Across Time)');
@@ -46,7 +47,7 @@ export function checkWestgardRules(
   if (s < 5 && levelHistory.length >= 3) {
     // 4-1s (Across Time)
     const last4Z = [...levelHistory.slice(-3).map(r => getZScore(r.value, level)), currentZ];
-    if (last4Z.every(z => Math.abs(z) > 1 && Math.sign(z) === Math.sign(last4Z[0]))) {
+    if (last4Z.length >= 4 && last4Z.every(z => Math.abs(z) > 1 && Math.sign(z) === Math.sign(last4Z[0]))) {
       violations.push('4-1s (Across Time)');
     }
   }
@@ -54,18 +55,19 @@ export function checkWestgardRules(
   if (s < 4 && levelHistory.length >= 9) {
     // 10x (Across Time)
     const last10Z = [...levelHistory.map(r => getZScore(r.value, level)), currentZ];
-    if (last10Z.every(z => Math.sign(z) === Math.sign(last10Z[0]))) {
+    if (last10Z.length >= 10 && last10Z.every(z => Math.sign(z) === Math.sign(last10Z[0]))) {
       violations.push('10x (Across Time)');
     }
   }
 
-  // 2. Across Material Logic (Compare with latest of other levels)
-  // Get latest results for ALL levels of this test
+  // 2. Across Material Logic (Current instrument, but check OTHER levels)
   const otherLevels: (1 | 2 | 3)[] = ([1, 2, 3] as (1 | 2 | 3)[]).filter(l => l !== level);
+  
+  // Get latest results from other levels on the SAME instrument
   const latestOfOtherLevels = otherLevels.map(l => {
     const params = l === 1 ? config.level1 : (l === 2 ? config.level2 : config.level3);
     if (!params) return null;
-    return previousResults.filter(r => r.level === l && r.testId === config.id).pop();
+    return previousResults.filter(r => r.level === l && r.testId === config.id && r.instrumentId === instrumentId).pop();
   }).filter(r => r !== undefined && r !== null) as QCResult[];
 
   if (latestOfOtherLevels.length > 0) {
@@ -82,29 +84,25 @@ export function checkWestgardRules(
       }
     });
 
-    // 4-1s (Across Material) - Combined 4 points across levels
-    // Typically: current level (2 points) + other level (2 points)
-    // For simplicity: check 4 total across all levels
-    const allRecent = [...previousResults.filter(r => r.testId === config.id).slice(-3), { value: currentValue, level }];
-    const allRecentZ = allRecent.map(r => getZScore(r.value, r.level as any));
-    if (allRecentZ.length >= 4 && s < 5) {
-      const last4Z = allRecentZ.slice(-4);
+    // 4-1s (Across Material) - Combined 4 points across levels on SAME instrument
+    const allRecentOnInstrument = [...previousResults.filter(r => r.testId === config.id && r.instrumentId === instrumentId).slice(-3), { value: currentValue, level }];
+    if (allRecentOnInstrument.length >= 4 && s < 5) {
+      const last4Z = allRecentOnInstrument.slice(-4).map(r => getZScore(r.value, r.level as any));
       if (last4Z.every(z => Math.abs(z) > 1 && Math.sign(z) === Math.sign(last4Z[0]))) {
         violations.push('4-1s (Across Material)');
       }
     }
 
-    // 10x (Across Material)
-    const allHistory = [...previousResults.filter(r => r.testId === config.id), { value: currentValue, level }];
-    if (allHistory.length >= 10 && s < 4) {
-      const last10Z = allHistory.slice(-10).map(r => getZScore(r.value, r.level as any));
+    // 10x (Across Material) - 10 points across levels on SAME instrument
+    const allHistoryOnInstrument = [...previousResults.filter(r => r.testId === config.id && r.instrumentId === instrumentId), { value: currentValue, level }];
+    if (allHistoryOnInstrument.length >= 10 && s < 4) {
+      const last10Z = allHistoryOnInstrument.slice(-10).map(r => getZScore(r.value, r.level as any));
       if (last10Z.every(z => Math.sign(z) === Math.sign(last10Z[0]))) {
         violations.push('10x (Across Material)');
       }
     }
   }
 
-  // Remove duplicates (e.g. if a rule is triggered multiple times)
   return Array.from(new Set(violations));
 }
 
