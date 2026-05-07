@@ -10,15 +10,17 @@ export const QC_CONFIGS: QCConfig[] = [
     id: 'test-glu',
     testName: 'Glucose',
     unit: 'mg/dL',
-    level1: { mean: 100, sd: 2.5 },
-    level2: { mean: 250, sd: 5.0 },
+    level1: { mean: 100, sd: 2.5, cv: 2.5 },
+    level2: { mean: 250, sd: 5.0, cv: 2.0 },
+    allowableError: 10,
   },
   {
     id: 'test-cre',
     testName: 'Creatinine',
     unit: 'mg/dL',
-    level1: { mean: 1.0, sd: 0.05 },
-    level2: { mean: 4.0, sd: 0.15 },
+    level1: { mean: 1.0, sd: 0.05, cv: 5.0 },
+    level2: { mean: 4.0, sd: 0.15, cv: 3.75 },
+    allowableError: 15,
   },
 ];
 

@@ -39,6 +39,7 @@ export default function App() {
   const [instruments, setInstruments] = useState<Instrument[]>(INSTRUMENTS);
   const [eqaRecords, setEqaRecords] = useState<EQARecord[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [savedCalculations, setSavedCalculations] = useState<any[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // 1. Initial Load from LocalStorage
@@ -60,6 +61,7 @@ export default function App() {
     setInstruments(loadFromStorage('qc_insts', INSTRUMENTS));
     setUsers(loadFromStorage('qc_users', []));
     setEqaRecords(loadFromStorage('qc_eqa', []));
+    setSavedCalculations(loadFromStorage('qc_saved_calcs', []));
     
     const savedUser = localStorage.getItem('qc_current_user');
     if (savedUser) {
@@ -80,7 +82,8 @@ export default function App() {
     localStorage.setItem('qc_insts', JSON.stringify(instruments));
     localStorage.setItem('qc_users', JSON.stringify(users));
     localStorage.setItem('qc_eqa', JSON.stringify(eqaRecords));
-  }, [results, configs, instruments, users, eqaRecords, isLoaded]);
+    localStorage.setItem('qc_saved_calcs', JSON.stringify(savedCalculations));
+  }, [results, configs, instruments, users, eqaRecords, savedCalculations, isLoaded]);
 
   const handleLogin = (license: string, password: string) => {
     if (license === 'ADMIN' && password === 'admin') {
@@ -198,10 +201,13 @@ export default function App() {
         <SettingsPage
           configs={configs}
           instruments={instruments}
+          savedCalculations={savedCalculations}
           onAddConfig={c => setConfigs(prev => [...prev, c])}
           onAddInstrument={i => setInstruments(prev => [...prev, i])}
+          onAddCalculation={calc => setSavedCalculations(prev => [...prev, calc])}
           onDeleteConfig={id => setConfigs(prev => prev.filter(x => x.id !== id))}
           onDeleteInstrument={id => setInstruments(prev => prev.filter(x => x.id !== id))}
+          onDeleteCalculation={id => setSavedCalculations(prev => prev.filter(x => x.id !== id))}
         />
       )}
 

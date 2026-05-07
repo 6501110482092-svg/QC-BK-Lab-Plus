@@ -24,6 +24,7 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
   const [value, setValue] = useState<string>('');
   const [comment, setComment] = useState<string>('');
   const [isExporting, setIsExporting] = useState(false);
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '3m' | 'all'>('30d');
 
   const exportRef = useRef<HTMLDivElement>(null);
 
@@ -60,28 +61,21 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
     setComment('');
   };
 
-  const currentResults = results.filter(r => r.level === level && r.testId === selectedTest && r.instrumentId === selectedInst);
   const currentInstrument = instruments.find(i => i.id === selectedInst);
 
-  const handleExportJPG = async () => {
-    if (!exportRef.current) return;
-    setIsExporting(true);
-    try {
-      const canvas = await html2canvas(exportRef.current, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        logging: false
-      });
-      const link = document.createElement('a');
-      link.download = `QC_Report_${config.testName}_LV${level}.jpg`;
-      link.href = canvas.toDataURL('image/jpeg', 0.9);
-      link.click();
-    } catch (err) {
-      console.error('Export Failed:', err);
-    } finally {
-      setIsExporting(false);
-    }
-  };
+  const filteredResults = React.useMemo(() => {
+    let filtered = results.filter(r => r.level === level && r.testId === selectedTest && r.instrumentId === selectedInst);
+    
+    if (dateRange === 'all') return filtered;
+
+    const now = new Date();
+    const cutoff = new Date();
+    if (dateRange === '7d') cutoff.setDate(now.getDate() - 7);
+    else if (dateRange === '30d') cutoff.setDate(now.getDate() - 30);
+    else if (dateRange === '3m') cutoff.setMonth(now.getMonth() - 3);
+
+    return filtered.filter(r => new Date(r.date) >= cutoff);
+  }, [results, level, selectedTest, selectedInst, dateRange]);
 
   const handleExportPDF = async () => {
     if (!exportRef.current) return;
@@ -89,25 +83,28 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
     
     try {
       // Capture the chart area first
+      // We use html2canvas to capture the visual representation
       const canvas = await html2canvas(exportRef.current, {
         scale: 2,
         backgroundColor: '#ffffff',
         useCORS: true,
-        logging: false
+        logging: false,
+        allowTaint: true
       });
-      const chartImgData = canvas.toDataURL('image/jpeg', 1.0);
+      const chartImgData = canvas.toDataURL('image/jpeg', 0.95);
 
-      const doc = new jsPDF();
+      const doc = new jsPDF('p', 'mm', 'a4');
       const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 14;
       
       // Header
       doc.setFontSize(18);
       doc.setTextColor(15, 76, 129); // #0F4C81
-      doc.text('IQC Analysis Report', 14, 20);
+      doc.text('IQC Analysis Report', margin, 20);
       
       doc.setFontSize(10);
       doc.setTextColor(100);
-      doc.text(`Export Date: ${new Date().toLocaleString()}`, 14, 27);
+      doc.text(`Export Date: ${new Date().toLocaleString('th-TH')}`, margin, 27);
       
       // 1. Info Table
       (doc as any).autoTable({
@@ -116,13 +113,13 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
         body: [
           ['Test Name', config.testName],
           ['Instrument', `${currentInstrument?.name} (${currentInstrument?.model})`],
-          ['Control Level', `Level ${level}`],
+          ['Control Level', `Control Level ${level}`],
           ['Mean', levelParams?.mean.toString()],
           ['SD', levelParams?.sd.toString()],
+          ['CV %', `${levelParams?.cv?.toString()}%`],
           ['Unit', config.unit],
           ['Latest Sigma', latestEQA?.sigma.toFixed(2) || 'N/A'],
           ['Bias %', latestEQA?.bias.toFixed(2) || 'N/A'],
-          ['CV %', latestEQA?.cv.toFixed(2) || 'N/A'],
         ],
         theme: 'striped',
         headStyles: { fillColor: [15, 76, 129] },
@@ -131,24 +128,30 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
 
       // 2. Chart Image
       const chartY = (doc as any).lastAutoTable.finalY + 10;
-      doc.text('Levey-Jennings Chart', 14, chartY);
+      doc.text('Levey-Jennings Chart & Statistics Summary', margin, chartY);
       
-      const imgWidth = pageWidth - 28;
+      const imgWidth = pageWidth - (margin * 2);
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      doc.addImage(chartImgData, 'JPEG', 14, chartY + 5, imgWidth, imgHeight);
+      // Check if we need a new page for the chart
+      if (chartY + imgHeight + 10 > doc.internal.pageSize.getHeight()) {
+        doc.addPage();
+        doc.addImage(chartImgData, 'JPEG', margin, 15, imgWidth, imgHeight);
+      } else {
+        doc.addImage(chartImgData, 'JPEG', margin, chartY + 5, imgWidth, imgHeight);
+      }
 
-      // 3. Data Table (New Page if needed)
+      // 3. Data Table (Always new page for clarity)
       doc.addPage();
       doc.setFontSize(14);
       doc.setTextColor(15, 76, 129);
-      doc.text('Historical QC Data Table', 14, 20);
+      doc.text('Historical QC Data Table', margin, 20);
 
-      const tableData = currentResults.map(r => [
+      const tableData = filteredResults.map(r => [
         new Date(r.date).toLocaleString('th-TH'),
         r.operatorName,
         r.value,
-        ((r.value - levelParams!.mean) / levelParams!.sd).toFixed(2),
+        levelParams ? ((r.value - levelParams.mean) / levelParams.sd).toFixed(2) : 'N/A',
         r.westgardViolations.length > 0 ? r.westgardViolations.join(', ') : 'PASS'
       ]);
 
@@ -164,6 +167,7 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
       doc.save(`QC_Report_${config.testName}_LV${level}.pdf`);
     } catch (err) {
       console.error('PDF Export Failed:', err);
+      alert('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF กรุณาลองใหม่อีกครั้ง');
     } finally {
       setIsExporting(false);
     }
@@ -288,32 +292,43 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
         <div className="xl:col-span-8 space-y-8">
           <div ref={exportRef} className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center space-x-3 text-[#0F4C81]">
-                <Activity size={20} />
-                <h3 className="font-bold">Levey-Jennings: {config.testName} (Level {level})</h3>
+              <div className="flex flex-col space-y-1">
+                <div className="flex items-center space-x-3 text-[#0F4C81]">
+                  <Activity size={20} />
+                  <h3 className="font-bold">Levey-Jennings: {config.testName} (Level {level})</h3>
+                </div>
+                <div className="flex items-center space-x-2 mt-2">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Filter:</span>
+                  {(['7d', '30d', '3m', 'all'] as const).map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setDateRange(r)}
+                      className={`text-[9px] font-black px-2 py-0.5 rounded-full border transition-all ${
+                        dateRange === r 
+                        ? 'bg-[#0F4C81] text-white border-[#0F4C81]' 
+                        : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      {r === '7d' ? '7 วันล่าสุด' : r === '30d' ? '30 วันล่าสุด' : r === '3m' ? '3 เดือนล่าสุด' : 'ทั้งหมด'}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="flex space-x-2">
                 <button 
-                  onClick={handleExportJPG}
-                  disabled={isExporting}
-                  className="flex items-center space-x-2 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg text-xs font-bold transition-all border border-slate-200"
-                >
-                  <ImageIcon size={14} />
-                  <span>{isExporting ? 'Exporting...' : 'JPG'}</span>
-                </button>
-                <button 
                   onClick={handleExportPDF}
-                  className="flex items-center space-x-2 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg text-xs font-bold transition-all border border-slate-200"
+                  disabled={isExporting}
+                  className="flex items-center space-x-2 px-4 py-2 bg-[#0F4C81] hover:bg-[#0b3a63] text-white rounded-xl text-xs font-black transition-all shadow-lg shadow-blue-900/20 disabled:opacity-50"
                 >
                   <FileText size={14} />
-                  <span>PDF Report</span>
+                  <span>{isExporting ? 'กำลังสร้าง PDF...' : 'Download PDF Report'}</span>
                 </button>
               </div>
             </div>
-            <LJChart results={results} config={config} level={level} instrumentId={selectedInst} />
+            <LJChart results={filteredResults} config={config} level={level} instrumentId={selectedInst} />
             
             {/* Sigma Summary in Export Area */}
-            <div className="mt-8 grid grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+            <div className="mt-8 grid grid-cols-2 md:grid-cols-5 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
                <div>
                  <p className="text-[9px] font-bold text-slate-400 uppercase">Target Mean</p>
                  <p className="font-bold text-slate-700">{levelParams?.mean}</p>
@@ -323,10 +338,14 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
                  <p className="font-bold text-slate-700 text-sm">{levelParams?.sd}</p>
                </div>
                <div>
+                 <p className="text-[9px] font-bold text-slate-400 uppercase">Target CV %</p>
+                 <p className="font-bold text-emerald-600 text-sm">{levelParams?.cv?.toFixed(2)}%</p>
+               </div>
+               <div>
                  <p className="text-[9px] font-bold text-slate-400 uppercase">Bias %</p>
                  <p className="font-bold text-slate-700 text-sm">{latestEQA?.bias.toFixed(2) || '0.00'}%</p>
                </div>
-               <div>
+               <div className="md:border-l md:pl-4">
                  <p className="text-[9px] font-bold text-slate-400 uppercase">Six Sigma</p>
                  <p className={`font-black text-sm ${latestEQA && latestEQA.sigma >= 6 ? 'text-emerald-600' : 'text-[#0F4C81]'}`}>
                    {latestEQA?.sigma.toFixed(2) || 'N/A'}
@@ -353,9 +372,8 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                   {results
-                    .filter(r => r.level === level && r.testId === config.id && r.instrumentId === selectedInst)
-                    .slice(-10).reverse().map(r => (
+                   {filteredResults
+                    .slice().reverse().map(r => (
                       <tr key={r.id}>
                         <td className="px-6 py-3 text-xs">{new Date(r.date).toLocaleString('th-TH')}</td>
                         <td className="px-6 py-3 font-medium text-slate-500">{r.operatorName || 'System'}</td>

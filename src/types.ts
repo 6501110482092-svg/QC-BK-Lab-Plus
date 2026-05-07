@@ -22,6 +22,16 @@ export interface QCResult {
 export interface LevelConfig {
   mean: number;
   sd: number;
+  cv: number;
+}
+
+export interface SavedCalculation {
+  id: string;
+  name: string;
+  mean: number;
+  sd: number;
+  cv: number;
+  rawData: string;
 }
 
 export interface QCConfig {

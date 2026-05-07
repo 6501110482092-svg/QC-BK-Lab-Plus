@@ -147,3 +147,14 @@ export function getThaiSigmaRecommendation(sigma: number, bias: number, cv: numb
   }
   return "ประสิทธิภาพไม่ชัดเจน (Unacceptable): ผลการทดสอบไม่น่าเชื่อถือ แนะนำให้หยุดการทดสอบและหาสาเหตุ Root Cause Analysis (RCA) ก่อนเปิดระบบใหม่";
 }
+
+export function calculateStats(values: number[]) {
+  if (values.length === 0) return { mean: 0, sd: 0, cv: 0 };
+  const n = values.length;
+  const mean = values.reduce((a, b) => a + b, 0) / n;
+  if (n < 2) return { mean, sd: 0, cv: 0 };
+  const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (n - 1);
+  const sd = Math.sqrt(variance);
+  const cv = (sd / mean) * 100;
+  return { mean, sd, cv };
+}
