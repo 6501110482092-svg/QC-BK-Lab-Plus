@@ -5,7 +5,7 @@ import { checkWestgardRules, getThaiSigmaRecommendation } from '../lib/qcLogic';
 import LJChart from './LJChart';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 interface IQCPageProps {
   results: QCResult[];
@@ -83,14 +83,22 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
     
     try {
       // Capture the chart area first
-      // We use html2canvas to capture the visual representation
-      const canvas = await html2canvas(exportRef.current, {
+      const chartElement = exportRef.current;
+      if (!chartElement) throw new Error('Chart element not found');
+
+      const canvas = await html2canvas(chartElement, {
         scale: 2,
         backgroundColor: '#ffffff',
         useCORS: true,
         logging: false,
-        allowTaint: true
+        allowTaint: true,
+        onclone: (clonedDoc) => {
+          // Sometimes useful to ensure styles are applied in the clone
+          const el = clonedDoc.getElementById('export-area');
+          if (el) el.style.padding = '20px';
+        }
       });
+      
       const chartImgData = canvas.toDataURL('image/jpeg', 0.95);
 
       const doc = new jsPDF('p', 'mm', 'a4');
@@ -107,16 +115,16 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
       doc.text(`Export Date: ${new Date().toLocaleString('th-TH')}`, margin, 27);
       
       // 1. Info Table
-      (doc as any).autoTable({
+      autoTable(doc, {
         startY: 35,
         head: [['Parameter', 'Detail']],
         body: [
           ['Test Name', config.testName],
           ['Instrument', `${currentInstrument?.name} (${currentInstrument?.model})`],
           ['Control Level', `Control Level ${level}`],
-          ['Mean', levelParams?.mean.toString()],
-          ['SD', levelParams?.sd.toString()],
-          ['CV %', `${levelParams?.cv?.toString()}%`],
+          ['Mean', levelParams?.mean.toString() || '0'],
+          ['SD', levelParams?.sd.toString() || '0'],
+          ['CV %', `${levelParams?.cv?.toString() || '0'}%`],
           ['Unit', config.unit],
           ['Latest Sigma', latestEQA?.sigma.toFixed(2) || 'N/A'],
           ['Bias %', latestEQA?.bias.toFixed(2) || 'N/A'],
@@ -127,7 +135,8 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
       });
 
       // 2. Chart Image
-      const chartY = (doc as any).lastAutoTable.finalY + 10;
+      const finalY = (doc as any).lastAutoTable.finalY || 100;
+      const chartY = finalY + 10;
       doc.text('Levey-Jennings Chart & Statistics Summary', margin, chartY);
       
       const imgWidth = pageWidth - (margin * 2);
@@ -155,7 +164,7 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
         r.westgardViolations.length > 0 ? r.westgardViolations.join(', ') : 'PASS'
       ]);
 
-      (doc as any).autoTable({
+      autoTable(doc, {
         startY: 30,
         head: [['DateTime', 'Operator', 'Value', 'Sigma-Z', 'Status']],
         body: tableData,
@@ -167,7 +176,7 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
       doc.save(`QC_Report_${config.testName}_LV${level}.pdf`);
     } catch (err) {
       console.error('PDF Export Failed:', err);
-      alert('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF กรุณาลองใหม่อีกครั้ง');
+      alert('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setIsExporting(false);
     }
@@ -290,7 +299,7 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
 
         {/* Charts and History */}
         <div className="xl:col-span-8 space-y-8">
-          <div ref={exportRef} className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div ref={exportRef} id="export-area" className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between mb-8">
               <div className="flex flex-col space-y-1">
                 <div className="flex items-center space-x-3 text-[#0F4C81]">
