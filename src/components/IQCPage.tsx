@@ -382,110 +382,110 @@ function ReportModal({
            </div>
         </div>
 
-        <div className="p-10 space-y-8 print:p-0" id="print-area">
+        <div className="p-6 space-y-4 print:p-0" id="print-area">
           {/* Header */}
-          <div className="flex justify-between items-start border-b-2 border-slate-900 pb-6">
+          <div className="flex justify-between items-start border-b-2 border-slate-900 pb-3">
             <div>
-              <h1 className="text-3xl font-black text-[#0F4C81] mb-1">INTERNAL QUALITY CONTROL REPORT</h1>
-              <div className="flex items-center space-x-4 text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <h1 className="text-xl font-black text-[#0F4C81] mb-0.5 uppercase tracking-tighter">IQC Analysis Report</h1>
+              <div className="flex items-center space-x-3 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                  <span>{config.testName}</span>
-                 <span className="w-1.5 h-1.5 bg-slate-200 rounded-full"></span>
+                 <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
                  <span>Level {level}</span>
-                 <span className="w-1.5 h-1.5 bg-slate-200 rounded-full"></span>
+                 <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
                  <span>{new Date().toLocaleDateString('th-TH')}</span>
               </div>
             </div>
             <div className="text-right">
-               <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Lab Name</p>
-               <p className="text-sm font-black text-slate-800">BK LAB PLUS (IQC System)</p>
+               <p className="text-[8px] font-black text-slate-400 uppercase">Lab Name</p>
+               <p className="text-xs font-black text-slate-800">BK LAB PLUS</p>
             </div>
           </div>
 
           {/* Info Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+          <div className="grid grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
              <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Instrument</p>
-                <p className="text-xs font-black text-slate-700">{instrument?.name || 'N/A'}</p>
-                <p className="text-[10px] font-bold text-slate-400">{instrument?.model || '-'}</p>
+                <p className="text-[8px] font-black text-slate-400 uppercase mb-0.5">Instrument</p>
+                <p className="text-[10px] font-black text-slate-700 truncate">{instrument?.name || 'N/A'}</p>
+                <p className="text-[9px] font-bold text-slate-400">{instrument?.model || '-'}</p>
              </div>
              <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Target Params</p>
-                <div className="text-xs font-black text-slate-700 space-y-0.5">
-                   <p>Mean: {levelParams?.mean}</p>
-                   <p>SD: {levelParams?.sd}</p>
-                   <p>CV: {levelParams?.cv}%</p>
+                <p className="text-[8px] font-black text-slate-400 uppercase mb-0.5">Target Params</p>
+                <div className="text-[10px] font-black text-slate-700 flex flex-wrap gap-x-2">
+                   <span>M: {levelParams?.mean}</span>
+                   <span>SD: {levelParams?.sd}</span>
+                   <span>CV: {levelParams?.cv}%</span>
                 </div>
              </div>
              <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase mb-1">EQA Comparison</p>
-                <div className="text-xs font-black text-slate-700 space-y-0.5">
-                   <p>Sigma: {eqa?.sigma.toFixed(2) || 'N/A'}</p>
-                   <p>Bias: {eqa?.bias.toFixed(2) || '0'}%</p>
+                <p className="text-[8px] font-black text-slate-400 uppercase mb-0.5">Comparison</p>
+                <div className="text-[10px] font-black text-slate-700 flex flex-wrap gap-x-2">
+                   <span>Sigma: {eqa?.sigma.toFixed(2) || 'N/A'}</span>
+                   <span>Bias: {eqa?.bias.toFixed(2) || '0'}%</span>
                 </div>
              </div>
-             <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Unit</p>
-                <p className="text-lg font-black text-[#0F4C81]">{config.unit}</p>
+             <div className="text-right">
+                <p className="text-[8px] font-black text-slate-400 uppercase mb-0.5">Unit</p>
+                <p className="text-base font-black text-[#0F4C81]">{config.unit}</p>
              </div>
           </div>
 
           {/* Chart Section */}
-          <div className="space-y-4">
-             <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">Levey-Jennings Chart Analysis</h4>
-             <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm overflow-hidden h-[350px]">
+          <div className="space-y-2">
+             <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-l-2 border-[#0F4C81] pl-2">Levey-Jennings Chart Analysis</h4>
+             <div className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm overflow-hidden h-[240px]">
                 <LJChart results={results} config={config} level={level as any} instrumentId={instrument?.id || ''} />
              </div>
           </div>
 
           {/* Data Table */}
-          <div className="space-y-4">
-             <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">Raw QC History (Current View)</h4>
-             <div className="overflow-hidden rounded-2xl border border-slate-100">
-                <table className="w-full text-left text-[11px]">
+          <div className="space-y-2">
+             <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-l-2 border-[#0F4C81] pl-2">Raw QC History</h4>
+             <div className="overflow-hidden rounded-xl border border-slate-100">
+                <table className="w-full text-left text-[9px]">
                   <thead className="bg-[#0F4C81] text-white font-black uppercase tracking-wider">
                     <tr>
-                      <th className="px-4 py-3">Timestamp</th>
-                      <th className="px-4 py-3">Operator</th>
-                      <th className="px-4 py-3">Value</th>
-                      <th className="px-4 py-3">Z-Score</th>
-                      <th className="px-4 py-3">Status / Violations</th>
+                      <th className="px-3 py-1.5">Timestamp</th>
+                      <th className="px-3 py-1.5">Operator</th>
+                      <th className="px-3 py-1.5 text-center">Value</th>
+                      <th className="px-3 py-1.5 text-center">Z-Score</th>
+                      <th className="px-3 py-1.5">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {results.slice().reverse().map(r => (
+                  <tbody className="divide-y divide-slate-100 italic">
+                    {results.slice().reverse().slice(0, 10).map(r => (
                       <tr key={r.id}>
-                        <td className="px-4 py-2.5 font-bold text-slate-500">{new Date(r.date).toLocaleString('th-TH')}</td>
-                        <td className="px-4 py-2.5">{r.operatorName}</td>
-                        <td className="px-4 py-2.5 font-black text-slate-800">{r.value}</td>
-                        <td className="px-4 py-2.5 text-slate-400">
+                        <td className="px-3 py-1 font-bold text-slate-500">{new Date(r.date).toLocaleString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
+                        <td className="px-3 py-1 truncate max-w-[80px]">{r.operatorName}</td>
+                        <td className="px-3 py-1 font-black text-slate-800 text-center">{r.value}</td>
+                        <td className="px-3 py-1 text-slate-400 text-center">
                            {((r.value - levelParams!.mean) / levelParams!.sd).toFixed(2)}
                         </td>
-                        <td className="px-4 py-2.5">
+                        <td className="px-3 py-1">
                            {r.westgardViolations.length > 0 ? (
-                             <span className="text-red-600 font-bold">{r.westgardViolations.join(', ')}</span>
+                             <span className="text-red-600 font-bold text-[8px]">{r.westgardViolations.join(', ')}</span>
                            ) : <span className="text-emerald-600 font-black">PASS</span>}
                         </td>
                       </tr>
                     ))}
-                    {results.length === 0 && (
-                      <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-slate-300 italic font-bold">No data record in this period</td>
-                      </tr>
-                    )}
                   </tbody>
                 </table>
              </div>
           </div>
 
           {/* Footer Signature */}
-          <div className="flex justify-between items-end pt-12 border-t border-dashed border-slate-200 mt-12">
-             <div className="space-y-4">
-                <p className="text-[10px] font-black text-slate-400 uppercase mb-8">Operator / Reviewer Signature</p>
-                <div className="w-48 border-b-2 border-slate-900"></div>
-                <p className="text-[11px] font-bold text-slate-800">Date: ____/____/____</p>
+          <div className="flex justify-between items-end pt-4 border-t border-dashed border-slate-200">
+             <div className="flex space-x-8">
+                <div className="space-y-1">
+                   <p className="text-[8px] font-black text-slate-400 uppercase">Operator Signature</p>
+                   <div className="w-32 border-b border-slate-900 h-4"></div>
+                </div>
+                <div className="space-y-1">
+                   <p className="text-[8px] font-black text-slate-400 uppercase">Supervisor Review</p>
+                   <div className="w-32 border-b border-slate-900 h-4"></div>
+                </div>
              </div>
              <div className="text-right">
-                <p className="text-[9px] font-bold text-slate-300">Generated by BK-LAB IQC System v2.0</p>
+                <p className="text-[7px] font-bold text-slate-300">BK-LAB IQC v2.1 • {new Date().toLocaleTimeString('th-TH')}</p>
              </div>
           </div>
         </div>
