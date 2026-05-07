@@ -1,13 +1,15 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Activity, AlertTriangle, CheckCircle2, FlaskConical } from 'lucide-react';
-import { QCResult } from '../types';
+import { QCResult, QCConfig, Instrument } from '../types';
 
 interface DashboardProps {
   results: QCResult[];
+  configs: QCConfig[];
+  instruments: Instrument[];
 }
 
-export default function Dashboard({ results }: DashboardProps) {
+export default function Dashboard({ results, configs, instruments }: DashboardProps) {
   const recentResults = results.slice(-5).reverse();
   const violations = results.filter(r => r.westgardViolations.length > 0).length;
   const total = results.length;
@@ -17,7 +19,7 @@ export default function Dashboard({ results }: DashboardProps) {
     { label: 'จำนวนการทดสอบทั้งหมด', value: total, icon: FlaskConical, color: 'text-blue-600', bg: 'bg-blue-50' },
     { label: 'จำนวนที่ผิดกฎ QC', value: violations, icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
     { label: 'อัตราการผ่านกฎ (%)', value: `${successRate}%`, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'เครื่องวิเคราะห์ที่ใช้งาน', value: 2, icon: Activity, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { label: 'เครื่องวิเคราะห์ที่ใช้งาน', value: instruments.length, icon: Activity, color: 'text-purple-600', bg: 'bg-purple-50' },
   ];
 
   return (
@@ -57,42 +59,54 @@ export default function Dashboard({ results }: DashboardProps) {
               <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold tracking-wider">
                 <tr>
                   <th className="px-6 py-3">วัน/เวลา</th>
-                  <th className="px-6 py-3">ระดับ</th>
+                  <th className="px-6 py-3">รายการทดสอบ & เครื่อง</th>
+                  <th className="px-6 py-3 text-center">ระดับ</th>
                   <th className="px-6 py-3">ผลการตรวจ</th>
                   <th className="px-6 py-3">สถานะ</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {recentResults.map((result) => (
-                  <tr key={result.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {new Date(result.date).toLocaleString('th-TH', { 
-                        dateStyle: 'short', timeStyle: 'short' 
-                      })}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        result.level === 1 ? 'bg-blue-100 text-blue-700' : result.level === 2 ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700'
-                      }`}>
-                        Level {result.level}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-mono font-bold">{result.value}</td>
-                    <td className="px-6 py-4">
-                      {result.westgardViolations.length > 0 ? (
-                        <div className="flex items-center text-red-600 space-x-1 font-bold">
-                          <AlertTriangle size={14} />
-                          <span className="text-xs">{result.westgardViolations.join(', ')}</span>
+                {recentResults.map((result) => {
+                  const test = configs.find(c => c.id === result.testId);
+                  const inst = instruments.find(i => i.id === result.instrumentId);
+                  
+                  return (
+                    <tr key={result.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {new Date(result.date).toLocaleString('th-TH', { 
+                          dateStyle: 'short', timeStyle: 'short' 
+                        })}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="font-black text-slate-800">{test?.testName || 'Unknown Test'}</span>
+                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">{inst?.name || 'Unknown Instrument'}</span>
                         </div>
-                      ) : (
-                        <div className="flex items-center text-emerald-600 space-x-1 font-bold">
-                          <CheckCircle2 size={14} />
-                          <span className="text-xs">ผ่านเกณฑ์</span>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          result.level === 1 ? 'bg-blue-100 text-blue-700' : result.level === 2 ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700'
+                        }`}>
+                          Level {result.level}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 font-mono font-bold text-slate-700">{result.value}</td>
+                      <td className="px-6 py-4">
+                        {result.westgardViolations.length > 0 ? (
+                          <div className="flex items-center text-red-600 space-x-1 font-bold">
+                            <AlertTriangle size={14} />
+                            <span className="text-xs">{result.westgardViolations.join(', ')}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center text-emerald-600 space-x-1 font-bold">
+                            <CheckCircle2 size={14} />
+                            <span className="text-xs">ผ่านเกณฑ์</span>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
                 {recentResults.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-6 py-12 text-center text-slate-400 font-bold border-t">

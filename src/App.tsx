@@ -152,7 +152,7 @@ export default function App() {
 
   return (
     <Layout activeTab={activeTab} setActiveTab={setActiveTab} user={user} onLogout={handleLogout}>
-      {activeTab === 'dashboard' && <Dashboard results={results} />}
+      {activeTab === 'dashboard' && <Dashboard results={results} configs={configs} instruments={instruments} />}
       
       {activeTab === 'iqc' && (
         <IQCPage 
