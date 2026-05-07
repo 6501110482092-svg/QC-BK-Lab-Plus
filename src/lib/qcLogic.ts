@@ -71,18 +71,20 @@ export function checkWestgardRules(
   }).filter(r => r !== undefined && r !== null) as QCResult[];
 
   if (latestOfOtherLevels.length > 0) {
-    // 2-2s (Across Material)
-    latestOfOtherLevels.forEach(other => {
-      const otherZ = getZScore(other.value, other.level as any);
-      if (currentAbsZ > 2 && Math.abs(otherZ) > 2 && Math.sign(currentZ) === Math.sign(otherZ)) {
-        violations.push('2-2s (Across Material)');
-      }
+    if (s < 6) {
+      // 2-2s (Across Material)
+      latestOfOtherLevels.forEach(other => {
+        const otherZ = getZScore(other.value, other.level as any);
+        if (currentAbsZ > 2 && Math.abs(otherZ) > 2 && Math.sign(currentZ) === Math.sign(otherZ)) {
+          violations.push('2-2s (Across Material)');
+        }
 
-      // R-4s (Across Material)
-      if (Math.abs(currentZ - otherZ) > 4) {
-        violations.push('R-4s (Across Material)');
-      }
-    });
+        // R-4s (Across Material)
+        if (Math.abs(currentZ - otherZ) > 4) {
+          violations.push('R-4s (Across Material)');
+        }
+      });
+    }
 
     // 4-1s (Across Material) - Combined 4 points across levels on SAME instrument
     const allRecentOnInstrument = [...previousResults.filter(r => r.testId === config.id && r.instrumentId === instrumentId).slice(-3), { value: currentValue, level }];
