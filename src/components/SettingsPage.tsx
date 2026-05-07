@@ -144,7 +144,14 @@ export default function SettingsPage({
                 <div key={c.id} className="px-6 py-3 flex items-center justify-between hover:bg-slate-50">
                   <div>
                     <p className="font-bold text-slate-800">{c.testName}</p>
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wider">{c.unit} • %TEa: {c.allowableError}%</p>
+                    <div className="text-[10px] text-slate-400 uppercase tracking-wider space-y-0.5">
+                      <p>{c.unit} • %TEa: {c.allowableError}%</p>
+                      <p className="font-medium text-slate-500">
+                        L1 M: {c.level1.mean} SD: {c.level1.sd} | 
+                        L2 M: {c.level2.mean} SD: {c.level2.sd}
+                        {c.level3 && ` | L3 M: ${c.level3.mean} SD: ${c.level3.sd}`}
+                      </p>
+                    </div>
                   </div>
                   <button onClick={() => onDeleteConfig(c.id)} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
                     <Trash2 size={16} />
