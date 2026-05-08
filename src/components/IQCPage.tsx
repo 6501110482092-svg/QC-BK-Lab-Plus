@@ -407,8 +407,8 @@ function ReportModal({
   const sortedResults = [...results].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   // Chunking for multiple pages
-  const firstPageResults = sortedResults.slice(0, 15); 
-  const remainingResults = sortedResults.slice(15);
+  const firstPageResults = sortedResults.slice(0, 25); 
+  const remainingResults = sortedResults.slice(25);
   const resultsPerPage = 45; 
   const continuationPages = [];
   for (let i = 0; i < remainingResults.length; i += resultsPerPage) {
@@ -417,14 +417,14 @@ function ReportModal({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto cursor-pointer print:block print:bg-white print:p-0 print:static"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto cursor-pointer print:relative print:bg-white print:p-0 print:block print:overflow-visible"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div 
         id="print-area"
-        className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl my-8 cursor-default print:shadow-none print:my-0 print:rounded-none print:max-w-none print:w-full print:block" 
+        className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl my-8 cursor-default print:shadow-none print:my-0 print:rounded-none print:max-w-none print:w-full print:block print:relative print:overflow-visible" 
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-white px-8 py-4 border-b flex items-center justify-between z-20 no-print">
@@ -459,7 +459,7 @@ function ReportModal({
 
         <div className="p-8 space-y-2 bg-white print:p-8">
           {/* Page 1 */}
-          <div className="first-print-page flex flex-col space-y-2 print:min-h-[287mm] print:mb-0 print:overflow-visible page-break-after-always">
+          <div className="first-print-page flex flex-col space-y-2 print:min-h-[296mm] print:h-auto print:mb-0 print:overflow-visible page-break-after-always relative">
             {/* Header */}
             <div className="flex justify-between items-start border-b-2 border-slate-900 pb-2">
               <div>
@@ -579,7 +579,7 @@ function ReportModal({
 
           {/* Continuation Pages (Page 2, 3, 4, ...) */}
           {continuationPages.map((pageResults, index) => (
-            <div key={index} className="print:break-before-page pt-5 flex flex-col space-y-4 block print:min-h-[287mm] print:overflow-visible page-break-after-always">
+            <div key={index} className="print:break-before-page pt-5 flex flex-col space-y-4 block print:min-h-[296mm] print:h-auto print:overflow-visible page-break-after-always relative">
                {/* Header for Continuation Page */}
                <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
                   <div>
