@@ -459,7 +459,7 @@ function ReportModal({
 
         <div className="p-8 space-y-8 bg-white print:p-8">
           {/* Page 1 */}
-          <div className="flex flex-col space-y-4 print:min-h-[280mm] print:mb-0">
+          <div className="flex flex-col space-y-4 print:min-h-[285mm] print:mb-0">
             {/* Header */}
             <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
               <div>
@@ -580,7 +580,7 @@ function ReportModal({
 
           {/* Continuation Pages (Page 2, 3, 4, ...) */}
           {continuationPages.map((pageResults, index) => (
-            <div key={index} className="print:break-before-page pt-10 flex flex-col space-y-4 block print:min-h-[280mm]">
+            <div key={index} className="print:break-before-page pt-10 flex flex-col space-y-4 block print:min-h-[285mm]">
                {/* Header for Continuation Page */}
                <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
                   <div>

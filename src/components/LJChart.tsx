@@ -20,25 +20,31 @@ export default function LJChart({ results, config, level, instrumentId }: LJChar
 
   const width = 600;
   const height = 300;
-  const padding = 40;
-  const chartHeight = height - padding * 2;
-  const chartWidth = width - padding * 2;
+  const paddingLeft = 55;
+  const paddingRight = 35;
+  const paddingTop = 30;
+  const paddingBottom = 45;
+  
+  const chartHeight = height - paddingTop - paddingBottom;
+  const chartWidth = width - paddingLeft - paddingRight;
 
-  const yMin = mean - 3.5 * sd;
-  const yMax = mean + 3.5 * sd;
+  const dataMax = Math.max(...filteredResults.map(r => r.value), mean + 3.1 * sd);
+  const dataMin = Math.min(...filteredResults.map(r => r.value), mean - 3.1 * sd);
+  const rangeSpread = Math.max(dataMax - dataMin, 0.0001);
+  const yMax = dataMax + rangeSpread * 0.12;
+  const yMin = dataMin - rangeSpread * 0.12;
+
   const getY = (val: number) => {
     const range = yMax - yMin;
-    if (range === 0) return padding + chartHeight / 2;
-    // Calculate raw Y
-    const rawY = padding + chartHeight - ((val - yMin) / range) * chartHeight;
-    // Clamp within padding boundaries to prevent shooting out of container
-    return Math.max(padding, Math.min(height - padding, rawY));
+    if (range === 0) return paddingTop + chartHeight / 2;
+    const rawY = paddingTop + chartHeight - ((val - yMin) / range) * chartHeight;
+    return rawY;
   };
 
   const pointsCount = Math.max(10, filteredResults.length);
   const getX = (index: number) => {
     const divider = pointsCount > 1 ? pointsCount - 1 : 1;
-    return padding + (index / divider) * chartWidth;
+    return paddingLeft + (index / divider) * chartWidth;
   };
 
   const yLines = [
@@ -52,15 +58,15 @@ export default function LJChart({ results, config, level, instrumentId }: LJChar
   ];
 
   return (
-    <div className="w-full h-[400px] relative">
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full font-sans select-none">
+    <div className="w-full h-full relative">
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full font-sans select-none overflow-visible">
         {/* Y Axis Reference Lines */}
         {yLines.map((line, idx) => (
           <React.Fragment key={idx}>
             <line
-              x1={padding}
+              x1={paddingLeft}
               y1={getY(line.val)}
-              x2={width - padding}
+              x2={width - paddingRight}
               y2={getY(line.val)}
               stroke={line.color}
               strokeWidth={line.val === mean ? 1.5 : 1}
@@ -68,7 +74,7 @@ export default function LJChart({ results, config, level, instrumentId }: LJChar
               opacity={line.val === mean ? 0.8 : 0.4}
             />
             <text
-              x={padding - 5}
+              x={paddingLeft - 8}
               y={getY(line.val)}
               textAnchor="end"
               alignmentBaseline="middle"
@@ -86,12 +92,12 @@ export default function LJChart({ results, config, level, instrumentId }: LJChar
           <text
             key={`date-${i}`}
             x={getX(i)}
-            y={height - padding + 15}
+            y={height - paddingBottom + 15}
             textAnchor="middle"
             fontSize="8"
             fill="#94a3b8"
             className="font-bold"
-            transform={`rotate(45, ${getX(i)}, ${height - padding + 15})`}
+            transform={`rotate(45, ${getX(i)}, ${height - paddingBottom + 15})`}
           >
             {new Date(r.date).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit' })}
           </text>

@@ -7,34 +7,48 @@
 }
 
 @media print {
+  /* ซ่อนทุกอย่างยกเว้นพื้นที่พิมพ์ */
   body {
     background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
-  
-  #root > :not(#print-area),
+
+  /* ใช้ display: none เฉพาะกับส่วนที่เป็น UI ภายนอก modal */
+  #root > div > main > div:not(#print-area),
+  #root > div > nav,
+  #root > div > aside,
   .no-print {
     display: none !important;
   }
 
-  /* Handle nested visibility if needed, but display none on root siblings is usually enough */
-  main > :not(#print-area):not(#print-area *) {
-    display: none !important;
-  }
-
+  /* ให้ modal หรือ print-area แสดงผลตัวเดียวในหน้า */
   #print-area {
     display: block !important;
     position: absolute !important;
     top: 0 !important;
     left: 0 !important;
     width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: white !important;
+    height: auto !important;
+    visibility: visible !important;
+    z-index: 9999 !important;
   }
 
-  /* Force signatures and verification to bottom of page if possible or prevent breaks inside signature */
-  .page-footer {
-    break-inside: avoid;
+  body, html, #root, #root > div, #root > div > main, #root > div > main > div {
+    height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  #print-area * {
+    visibility: visible !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 0.5cm;
   }
 
   * {
