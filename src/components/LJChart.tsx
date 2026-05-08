@@ -16,8 +16,7 @@ export default function LJChart({ results, config, level, instrumentId }: LJChar
   const sd = levelParams.sd || 0.0001; // Avoid division by zero if SD is 0
   
   const filteredResults = results
-    .filter(r => r.level === level && r.testId === config.id && r.instrumentId === instrumentId)
-    .slice(-30);
+    .filter(r => r.level === level && r.testId === config.id && r.instrumentId === instrumentId);
 
   const width = 600;
   const height = 300;
@@ -25,12 +24,15 @@ export default function LJChart({ results, config, level, instrumentId }: LJChar
   const chartHeight = height - padding * 2;
   const chartWidth = width - padding * 2;
 
-  const yMin = mean - 4 * sd;
-  const yMax = mean + 4 * sd;
+  const yMin = mean - 3.5 * sd;
+  const yMax = mean + 3.5 * sd;
   const getY = (val: number) => {
     const range = yMax - yMin;
     if (range === 0) return padding + chartHeight / 2;
-    return padding + chartHeight - ((val - yMin) / range) * chartHeight;
+    // Calculate raw Y
+    const rawY = padding + chartHeight - ((val - yMin) / range) * chartHeight;
+    // Clamp within padding boundaries to prevent shooting out of container
+    return Math.max(padding, Math.min(height - padding, rawY));
   };
 
   const pointsCount = Math.max(10, filteredResults.length);

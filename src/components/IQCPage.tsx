@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Plus, History, Activity, Info, TrendingUp, Award, ShieldAlert, FileText, X, Printer, Camera } from 'lucide-react';
+import { Plus, History, Activity, Info, TrendingUp, Award, ShieldAlert, FileText, X, Printer, Camera, CheckCircle2 } from 'lucide-react';
 import { QCResult, QCConfig, Instrument, EQARecord } from '../types';
 import { checkWestgardRules, getThaiSigmaRecommendation } from '../lib/qcLogic';
 import LJChart from './LJChart';
@@ -22,6 +22,8 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
   const [comment, setComment] = useState<string>('');
   const [showReport, setShowReport] = useState(false);
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '3m' | 'all'>('30d');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const exportRef = useRef<HTMLDivElement>(null);
 
@@ -63,6 +65,21 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
   const filteredResults = React.useMemo(() => {
     let filtered = results.filter(r => r.level === level && r.testId === selectedTest && r.instrumentId === selectedInst);
     
+    if (startDate || endDate) {
+      return filtered.filter(r => {
+        const d = new Date(r.date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const dStr = `${year}-${month}-${day}`;
+        
+        if (startDate && endDate) return dStr >= startDate && dStr <= endDate;
+        if (startDate) return dStr >= startDate;
+        if (endDate) return dStr <= endDate;
+        return true;
+      });
+    }
+
     if (dateRange === 'all') return filtered;
 
     const now = new Date();
@@ -72,7 +89,7 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
     else if (dateRange === '3m') cutoff.setMonth(now.getMonth() - 3);
 
     return filtered.filter(r => new Date(r.date) >= cutoff);
-  }, [results, level, selectedTest, selectedInst, dateRange]);
+  }, [results, level, selectedTest, selectedInst, dateRange, startDate, endDate]);
 
   const levelParams = level === 1 ? config.level1 : (level === 2 ? config.level2 : config.level3);
 
@@ -110,8 +127,8 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-1">
+              <div className="grid grid-cols-1 gap-6">
+                <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 label-thai">ระดับการคุม (Control Level)</label>
                   <div className="flex bg-slate-100 p-1 rounded-xl">
                     {[1, 2, 3].map(l => (
@@ -128,7 +145,8 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
                     ))}
                   </div>
                 </div>
-                <div className="col-span-1">
+
+                <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 label-thai">ผลการวิเคราะห์ ({config.unit})</label>
                   <input
                     type="number" step="0.001" required value={value}
@@ -199,13 +217,17 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
                   <h3 className="font-bold">Levey-Jennings: {config.testName} (Level {level})</h3>
                 </div>
                 <div className="flex items-center space-x-2 mt-2">
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Filter:</span>
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Range:</span>
                   {(['7d', '30d', '3m', 'all'] as const).map((r) => (
                     <button
                       key={r}
-                      onClick={() => setDateRange(r)}
+                      onClick={() => {
+                        setDateRange(r);
+                        setStartDate('');
+                        setEndDate('');
+                      }}
                       className={`text-[9px] font-black px-2 py-0.5 rounded-full border transition-all ${
-                        dateRange === r 
+                        dateRange === r && !startDate && !endDate
                         ? 'bg-[#0F4C81] text-white border-[#0F4C81]' 
                         : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'
                       }`}
@@ -213,6 +235,41 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
                       {r === '7d' ? '7 วันล่าสุด' : r === '30d' ? '30 วันล่าสุด' : r === '3m' ? '3 เดือนล่าสุด' : 'ทั้งหมด'}
                     </button>
                   ))}
+                </div>
+
+                <div className="flex items-center space-x-2 mt-2 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Custom:</span>
+                  <input 
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      if (e.target.value) setDateRange('all');
+                    }}
+                    className="bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-600 focus:outline-none focus:ring-1 focus:ring-[#0F4C81]"
+                  />
+                  <span className="text-slate-300 text-[10px]">-</span>
+                  <input 
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => {
+                      setEndDate(e.target.value);
+                      if (e.target.value) setDateRange('all');
+                    }}
+                    className="bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-600 focus:outline-none focus:ring-1 focus:ring-[#0F4C81]"
+                  />
+                  {(startDate || endDate) && (
+                    <button 
+                      onClick={() => {
+                        setStartDate('');
+                        setEndDate('');
+                        setDateRange('30d');
+                      }}
+                      className="text-[9px] font-black text-red-500 hover:text-red-700 ml-2"
+                    >
+                      CLEAR
+                    </button>
+                  )}
                 </div>
               </div>
               <div className="flex space-x-2">
@@ -346,13 +403,16 @@ function ReportModal({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto cursor-pointer"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto cursor-pointer print:static print:bg-white print:p-0 print:overflow-visible"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-white w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl my-8 cursor-default" onClick={(e) => e.stopPropagation()}>
-        <div className="sticky top-0 bg-white px-8 py-4 border-b flex items-center justify-between z-10">
+      <div 
+        className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl my-8 cursor-default print:shadow-none print:my-0 print:rounded-none print:max-w-none" 
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 bg-white px-8 py-4 border-b flex items-center justify-between z-20 print:hidden">
            <div className="flex items-center space-x-3">
               <div className="p-2 bg-blue-50 text-[#0F4C81] rounded-lg">
                 <Camera size={20} />
@@ -382,117 +442,125 @@ function ReportModal({
            </div>
         </div>
 
-        <div className="p-6 space-y-4 print:p-0" id="print-area">
+        <div className="p-8 space-y-8 bg-white print:p-8" id="print-area">
           {/* Header */}
-          <div className="flex justify-between items-start border-b-2 border-slate-900 pb-3">
+          <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
             <div>
-              <h1 className="text-xl font-black text-[#0F4C81] mb-0.5 uppercase tracking-tighter">IQC Analysis Report</h1>
-              <div className="flex items-center space-x-3 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                 <span>{config.testName}</span>
-                 <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-                 <span>Level {level}</span>
-                 <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-                 <span>{new Date().toLocaleDateString('th-TH')}</span>
+              <h1 className="text-2xl font-black text-[#0F4C81] mb-0.5 tracking-tighter uppercase italic">Internal Quality Control Report</h1>
+              <div className="flex items-center space-x-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                 <span className="text-slate-600">TEST: {config.testName}</span>
+                 <span className="w-1.5 bg-slate-200 rounded-full h-1.5"></span>
+                 <span className="text-slate-600">LV: {level}</span>
+                 <span className="w-1.5 bg-slate-200 rounded-full h-1.5"></span>
+                 <span>DATE: {new Date().toLocaleDateString('th-TH')}</span>
               </div>
             </div>
             <div className="text-right">
-               <p className="text-[8px] font-black text-slate-400 uppercase">Lab Name</p>
-               <p className="text-xs font-black text-slate-800">BK LAB PLUS</p>
+               <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Institution</p>
+               <p className="text-sm font-black text-slate-800 tracking-tight">BK LAB PLUS (IQC SYSTEM)</p>
             </div>
           </div>
 
-          {/* Info Grid */}
+          {/* Statistics Grid - More compact */}
           <div className="grid grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
              <div>
-                <p className="text-[8px] font-black text-slate-400 uppercase mb-0.5">Instrument</p>
+                <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Analyzer</p>
                 <p className="text-[10px] font-black text-slate-700 truncate">{instrument?.name || 'N/A'}</p>
                 <p className="text-[9px] font-bold text-slate-400">{instrument?.model || '-'}</p>
              </div>
              <div>
-                <p className="text-[8px] font-black text-slate-400 uppercase mb-0.5">Target Params</p>
-                <div className="text-[10px] font-black text-slate-700 flex flex-wrap gap-x-2">
-                   <span>M: {levelParams?.mean}</span>
-                   <span>SD: {levelParams?.sd}</span>
-                   <span>CV: {levelParams?.cv}%</span>
+                <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Target Parameters</p>
+                <div className="text-[9px] font-bold text-slate-700 flex flex-wrap gap-x-2">
+                   <span>M: <span className="font-black">{levelParams?.mean}</span></span>
+                   <span>SD: <span className="font-black">{levelParams?.sd}</span></span>
+                   <span>CV: <span className="text-emerald-600 font-black">{levelParams?.cv}%</span></span>
                 </div>
              </div>
              <div>
-                <p className="text-[8px] font-black text-slate-400 uppercase mb-0.5">Comparison</p>
-                <div className="text-[10px] font-black text-slate-700 flex flex-wrap gap-x-2">
-                   <span>Sigma: {eqa?.sigma.toFixed(2) || 'N/A'}</span>
-                   <span>Bias: {eqa?.bias.toFixed(2) || '0'}%</span>
+                <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Metrics</p>
+                <div className="text-[9px] font-bold text-slate-700 flex flex-wrap gap-x-2">
+                   <span>Sigma: <span className="font-black text-[#0F4C81]">{eqa?.sigma.toFixed(2) || 'N/A'}</span></span>
+                   <span>Bias%: <span className="font-black">{eqa?.bias.toFixed(2) || '0'}%</span></span>
                 </div>
              </div>
-             <div className="text-right">
-                <p className="text-[8px] font-black text-slate-400 uppercase mb-0.5">Unit</p>
-                <p className="text-base font-black text-[#0F4C81]">{config.unit}</p>
+             <div className="text-right border-l border-slate-200 pl-3">
+                <p className="text-[8px] font-black text-slate-400 uppercase">Unit</p>
+                <p className="text-lg font-black text-[#0F4C81]">{config.unit}</p>
              </div>
           </div>
 
           {/* Chart Section */}
-          <div className="space-y-2">
-             <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-l-2 border-[#0F4C81] pl-2">Levey-Jennings Chart Analysis</h4>
-             <div className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm overflow-hidden h-[240px]">
+          <div className="space-y-4">
+             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">IQC Trend Analysis (Levey-Jennings)</h4>
+             <div className="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm overflow-hidden h-[300px]">
                 <LJChart results={results} config={config} level={level as any} instrumentId={instrument?.id || ''} />
              </div>
           </div>
 
-          {/* Data Table */}
-          <div className="space-y-2">
-             <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-l-2 border-[#0F4C81] pl-2">Raw QC History</h4>
-             <div className="overflow-hidden rounded-xl border border-slate-100">
-                <table className="w-full text-left text-[9px]">
+          {/* History Table - Latest 30 Items */}
+          <div className="space-y-4">
+             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">Analytical Run History (Latest 30)</h4>
+             <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+                <table className="w-full text-left text-[10px]">
                   <thead className="bg-[#0F4C81] text-white font-black uppercase tracking-wider">
                     <tr>
-                      <th className="px-3 py-1.5">Timestamp</th>
-                      <th className="px-3 py-1.5">Operator</th>
-                      <th className="px-3 py-1.5 text-center">Value</th>
-                      <th className="px-3 py-1.5 text-center">Z-Score</th>
-                      <th className="px-3 py-1.5">Status</th>
+                      <th className="px-4 py-3">Timestamp</th>
+                      <th className="px-4 py-3">Operator</th>
+                      <th className="px-4 py-3 text-center">Value</th>
+                      <th className="px-4 py-3 text-center">Z-Score</th>
+                      <th className="px-4 py-3 text-right">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 italic">
-                    {results.slice().reverse().slice(0, 10).map(r => (
+                    {results.slice().reverse().slice(0, 30).map(r => (
                       <tr key={r.id}>
-                        <td className="px-3 py-1 font-bold text-slate-500">{new Date(r.date).toLocaleString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
-                        <td className="px-3 py-1 truncate max-w-[80px]">{r.operatorName}</td>
-                        <td className="px-3 py-1 font-black text-slate-800 text-center">{r.value}</td>
-                        <td className="px-3 py-1 text-slate-400 text-center">
+                        <td className="px-4 py-2 font-bold text-slate-500">
+                          {new Date(r.date).toLocaleString('th-TH', { 
+                            day: '2-digit', month: '2-digit', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit'
+                          })}
+                        </td>
+                        <td className="px-4 py-2 truncate max-w-[120px]">{r.operatorName}</td>
+                        <td className="px-4 py-2 font-black text-slate-800 text-center">{r.value}</td>
+                        <td className="px-4 py-2 text-slate-400 text-center font-bold">
                            {((r.value - levelParams!.mean) / levelParams!.sd).toFixed(2)}
                         </td>
-                        <td className="px-3 py-1">
+                        <td className="px-4 py-2 text-right">
                            {r.westgardViolations.length > 0 ? (
-                             <span className="text-red-600 font-bold text-[8px]">{r.westgardViolations.join(', ')}</span>
+                             <span className="text-red-700 font-bold text-[9px] bg-red-50 px-2 py-0.5 rounded border border-red-100">{r.westgardViolations.join(', ')}</span>
                            ) : <span className="text-emerald-600 font-black">PASS</span>}
                         </td>
                       </tr>
                     ))}
+                    {results.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-10 text-center text-slate-300 italic font-bold">No results found for selected period</td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
              </div>
           </div>
 
-          {/* Footer Signature */}
+          {/* Verification Section - Compact */}
           <div className="flex justify-between items-end pt-4 border-t border-dashed border-slate-200">
              <div className="flex space-x-8">
                 <div className="space-y-1">
-                   <p className="text-[8px] font-black text-slate-400 uppercase">Operator Signature</p>
-                   <div className="w-32 border-b border-slate-900 h-4"></div>
+                   <p className="text-[8px] font-black text-slate-400 uppercase">Operator Sign</p>
+                   <div className="w-32 border-b border-slate-900 h-5"></div>
                 </div>
                 <div className="space-y-1">
-                   <p className="text-[8px] font-black text-slate-400 uppercase">Supervisor Review</p>
-                   <div className="w-32 border-b border-slate-900 h-4"></div>
+                   <p className="text-[8px] font-black text-slate-400 uppercase">Supervisor Sign</p>
+                   <div className="w-32 border-b border-slate-900 h-5"></div>
                 </div>
              </div>
              <div className="text-right">
-                <p className="text-[7px] font-bold text-slate-300">BK-LAB IQC v2.1 • {new Date().toLocaleTimeString('th-TH')}</p>
+                <p className="text-[7px] font-bold text-slate-300">BK-LAB IQC v2.5 • Official Transcript</p>
+                <p className="text-[9px] font-black text-slate-800 italic uppercase">QA Verified</p>
              </div>
           </div>
         </div>
       </div>
-      
-      {/* Report Modal Backdrop logic */}
-      <ReportModalPortal />
     </div>
   );
 }
