@@ -19,11 +19,11 @@ export default function LJChart({ results, config, level, instrumentId }: LJChar
     .filter(r => r.level === level && r.testId === config.id && r.instrumentId === instrumentId);
 
   const width = 800;
-  const height = 320;
-  const paddingLeft = 100;
-  const paddingRight = 60;
-  const paddingTop = 30;
-  const paddingBottom = 50;
+  const height = 380;
+  const paddingLeft = 70;
+  const paddingRight = 20;
+  const paddingTop = 20;
+  const paddingBottom = 40;
   
   const chartHeight = height - paddingTop - paddingBottom;
   const chartWidth = width - paddingLeft - paddingRight;
@@ -73,11 +73,11 @@ export default function LJChart({ results, config, level, instrumentId }: LJChar
               opacity={line.val === mean ? 0.8 : 0.4}
             />
             <text
-              x={paddingLeft - 12}
+              x={paddingLeft - 8}
               y={getY(line.val)}
               textAnchor="end"
               alignmentBaseline="middle"
-              fontSize="12"
+              fontSize="11"
               fill={line.color}
               className="font-black font-mono"
             >
