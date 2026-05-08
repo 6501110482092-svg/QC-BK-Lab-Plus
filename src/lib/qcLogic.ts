@@ -20,50 +20,62 @@ export function checkWestgardRules(
   const currentAbsZ = Math.abs(currentZ);
   const s = sigma || 0;
 
-  // 1. Across Time Logic (Current level + Current instrument only)
+  // History of THIS level on THIS instrument
   const levelHistory = previousResults
     .filter((r) => r.level === level && r.testId === config.id && r.instrumentId === instrumentId)
-    .slice(-10); // History of THIS level on THIS instrument
+    .slice(-10); // Keep enough for 10x check
+
+  // 1-2s Warning (Standard Westgard)
+  if (currentAbsZ >= 2 && currentAbsZ < 3) {
+    violations.push('1-2s | Warning | Across Time');
+  }
 
   // 1-3s Rejection
-  if (currentAbsZ > 3) violations.push('1-3s (Across Time)');
+  if (currentAbsZ >= 3) {
+    violations.push('1-3s | Random Error | Across Time');
+  }
 
   if (s < 6) {
     // 2-2s (Across Time)
     if (levelHistory.length >= 1) {
       const prev = levelHistory[levelHistory.length - 1];
       const prevZ = getZScore(prev.value, level);
-      if (currentAbsZ > 2 && Math.abs(prevZ) > 2 && Math.sign(currentZ) === Math.sign(prevZ)) {
-        violations.push('2-2s (Across Time)');
+      if (currentAbsZ >= 2 && Math.abs(prevZ) >= 2 && Math.sign(currentZ) === Math.sign(prevZ)) {
+        violations.push('2-2s | Systemic Error | Across Time');
       }
 
       // R-4s (Across Time)
-      if (Math.abs(currentZ - prevZ) > 4) {
-        violations.push('R-4s (Across Time)');
+      if (Math.abs(currentZ - prevZ) >= 4) {
+        violations.push('R-4s | Random Error | Across Time');
       }
     }
   }
 
-  if (s < 5 && levelHistory.length >= 3) {
+  if (s < 5) {
     // 4-1s (Across Time)
-    const last4Z = [...levelHistory.slice(-3).map(r => getZScore(r.value, level)), currentZ];
-    if (last4Z.length >= 4 && last4Z.every(z => Math.abs(z) > 1 && Math.sign(z) === Math.sign(last4Z[0]))) {
-      violations.push('4-1s (Across Time)');
+    // Needs 3 previous + current = 4
+    if (levelHistory.length >= 3) {
+      const last4Z = [...levelHistory.slice(-3).map(r => getZScore(r.value, level)), currentZ];
+      if (last4Z.length === 4 && last4Z.every(z => Math.abs(z) >= 1 && Math.sign(z) === Math.sign(last4Z[0]))) {
+        violations.push('4-1s | Systemic Error | Across Time');
+      }
     }
   }
 
-  if (s < 4 && levelHistory.length >= 9) {
+  if (s < 4) {
     // 10x (Across Time)
-    const last10Z = [...levelHistory.map(r => getZScore(r.value, level)), currentZ];
-    if (last10Z.length >= 10 && last10Z.every(z => Math.sign(z) === Math.sign(last10Z[0]))) {
-      violations.push('10x (Across Time)');
+    // Needs 9 previous + current = 10
+    if (levelHistory.length >= 9) {
+      const last10Z = [...levelHistory.slice(-9).map(r => getZScore(r.value, level)), currentZ];
+      if (last10Z.length === 10 && last10Z.every(z => Math.sign(z) === Math.sign(last10Z[0]))) {
+        violations.push('10x | Systemic Error | Across Time');
+      }
     }
   }
 
   // 2. Across Material Logic (Current instrument, but check OTHER levels)
   const otherLevels: (1 | 2 | 3)[] = ([1, 2, 3] as (1 | 2 | 3)[]).filter(l => l !== level);
   
-  // Get latest results from other levels on the SAME instrument
   const latestOfOtherLevels = otherLevels.map(l => {
     const params = l === 1 ? config.level1 : (l === 2 ? config.level2 : config.level3);
     if (!params) return null;
@@ -75,32 +87,32 @@ export function checkWestgardRules(
       // 2-2s (Across Material)
       latestOfOtherLevels.forEach(other => {
         const otherZ = getZScore(other.value, other.level as any);
-        if (currentAbsZ > 2 && Math.abs(otherZ) > 2 && Math.sign(currentZ) === Math.sign(otherZ)) {
-          violations.push('2-2s (Across Material)');
+        if (currentAbsZ >= 2 && Math.abs(otherZ) >= 2 && Math.sign(currentZ) === Math.sign(otherZ)) {
+          violations.push('2-2s | Systemic Error | Across Material');
         }
 
         // R-4s (Across Material)
-        if (Math.abs(currentZ - otherZ) > 4) {
-          violations.push('R-4s (Across Material)');
+        if (Math.abs(currentZ - otherZ) >= 4) {
+          violations.push('R-4s | Random Error | Across Material');
         }
       });
     }
 
-    // 4-1s (Across Material) - Combined 4 points across levels on SAME instrument
+    // 4-1s (Across Material)
     const allRecentOnInstrument = [...previousResults.filter(r => r.testId === config.id && r.instrumentId === instrumentId).slice(-3), { value: currentValue, level }];
     if (allRecentOnInstrument.length >= 4 && s < 5) {
       const last4Z = allRecentOnInstrument.slice(-4).map(r => getZScore(r.value, r.level as any));
-      if (last4Z.every(z => Math.abs(z) > 1 && Math.sign(z) === Math.sign(last4Z[0]))) {
-        violations.push('4-1s (Across Material)');
+      if (last4Z.every(z => Math.abs(z) >= 1 && Math.sign(z) === Math.sign(last4Z[0]))) {
+        violations.push('4-1s | Systemic Error | Across Material');
       }
     }
 
-    // 10x (Across Material) - 10 points across levels on SAME instrument
+    // 10x (Across Material)
     const allHistoryOnInstrument = [...previousResults.filter(r => r.testId === config.id && r.instrumentId === instrumentId), { value: currentValue, level }];
     if (allHistoryOnInstrument.length >= 10 && s < 4) {
       const last10Z = allHistoryOnInstrument.slice(-10).map(r => getZScore(r.value, r.level as any));
       if (last10Z.every(z => Math.sign(z) === Math.sign(last10Z[0]))) {
-        violations.push('10x (Across Material)');
+        violations.push('10x | Systemic Error | Across Material');
       }
     }
   }

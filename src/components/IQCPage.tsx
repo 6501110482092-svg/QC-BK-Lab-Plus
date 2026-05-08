@@ -341,9 +341,30 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
                           </td>
                           <td className="px-6 py-3">
                              {r.westgardViolations.length > 0 ? (
-                               <span className="text-red-500 font-bold px-2 py-0.5 bg-red-50 rounded text-xs">
-                                  {r.westgardViolations.join(', ')}
-                               </span>
+                               <div className="flex flex-wrap gap-1">
+                                 {r.westgardViolations.map((v, idx) => {
+                                   const parts = v.split(' | ');
+                                   const rule = parts[0] || v;
+                                   const errorType = parts[1] || '';
+                                   const source = parts[2] || '';
+                                   const isWarning = v.includes('Warning');
+                                   
+                                   return (
+                                     <div 
+                                       key={idx}
+                                       className={`font-bold px-2 py-1 rounded text-[10px] flex flex-col items-center text-center min-w-[80px] ${
+                                         isWarning 
+                                         ? 'bg-amber-50 text-amber-600 border border-amber-100' 
+                                         : 'bg-red-50 text-red-600 border border-red-100'
+                                       }`}
+                                     >
+                                        <span>{rule}</span>
+                                        {errorType && <span className="opacity-70 text-[8px]">({errorType})</span>}
+                                        {source && <span className="opacity-70 text-[8px]">({source})</span>}
+                                     </div>
+                                   );
+                                 })}
+                               </div>
                              ) : <span className="text-emerald-500 font-bold text-xs ring-1 ring-emerald-100 px-2 py-0.5 rounded">PASSED</span>}
                           </td>
                           {currentUser.role === 'ADMIN' && (
@@ -547,7 +568,30 @@ function ReportModal({
                                 </td>
                                 <td className="px-4 py-2 text-right">
                                   {r.westgardViolations.length > 0 ? (
-                                    <span className="text-red-700 font-bold text-[7px] bg-red-50 px-2 py-1 rounded border border-red-100">{r.westgardViolations.join(', ')}</span>
+                                    <div className="flex flex-col items-end gap-1">
+                                      {r.westgardViolations.map((v, idx) => {
+                                        const parts = v.split(' | ');
+                                        const rule = parts[0] || v;
+                                        const errorType = parts[1] || '';
+                                        const source = parts[2] || '';
+                                        const isWarning = v.includes('Warning');
+
+                                        return (
+                                          <div 
+                                            key={idx}
+                                            className={`font-bold text-[7px] px-2 py-1 rounded border flex flex-col items-end leading-tight ${
+                                              isWarning 
+                                              ? 'bg-amber-50 text-amber-700 border-amber-100' 
+                                              : 'bg-red-50 text-red-700 border-red-100'
+                                            }`}
+                                          >
+                                            <span>{rule}</span>
+                                            {errorType && <span className="opacity-80">({errorType})</span>}
+                                            {source && <span className="opacity-80">({source})</span>}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
                                   ) : <span className="text-emerald-600 text-[10px]">PASS</span>}
                                 </td>
                               </tr>
