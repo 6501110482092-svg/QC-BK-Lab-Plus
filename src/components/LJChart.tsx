@@ -18,12 +18,12 @@ export default function LJChart({ results, config, level, instrumentId }: LJChar
   const filteredResults = results
     .filter(r => r.level === level && r.testId === config.id && r.instrumentId === instrumentId);
 
-  const width = 600;
-  const height = 300;
-  const paddingLeft = 55;
-  const paddingRight = 35;
-  const paddingTop = 30;
-  const paddingBottom = 45;
+  const width = 800;
+  const height = 420;
+  const paddingLeft = 100;
+  const paddingRight = 60;
+  const paddingTop = 40;
+  const paddingBottom = 60;
   
   const chartHeight = height - paddingTop - paddingBottom;
   const chartWidth = width - paddingLeft - paddingRight;
@@ -31,8 +31,8 @@ export default function LJChart({ results, config, level, instrumentId }: LJChar
   const dataMax = Math.max(...filteredResults.map(r => r.value), mean + 3.1 * sd);
   const dataMin = Math.min(...filteredResults.map(r => r.value), mean - 3.1 * sd);
   const rangeSpread = Math.max(dataMax - dataMin, 0.0001);
-  const yMax = mean + (rangeSpread / 2) * 1.5;
-  const yMin = mean - (rangeSpread / 2) * 1.5;
+  const yMax = mean + (rangeSpread / 2) * 1.25;
+  const yMin = mean - (rangeSpread / 2) * 1.25;
 
   const getY = (val: number) => {
     const range = (yMax - yMin) || 0.0001;
@@ -73,13 +73,13 @@ export default function LJChart({ results, config, level, instrumentId }: LJChar
               opacity={line.val === mean ? 0.8 : 0.4}
             />
             <text
-              x={paddingLeft - 8}
+              x={paddingLeft - 12}
               y={getY(line.val)}
               textAnchor="end"
               alignmentBaseline="middle"
-              fontSize="10"
+              fontSize="12"
               fill={line.color}
-              className="font-bold font-mono"
+              className="font-black font-mono"
             >
               {line.label}
             </text>
@@ -91,12 +91,12 @@ export default function LJChart({ results, config, level, instrumentId }: LJChar
           <text
             key={`date-${i}`}
             x={getX(i)}
-            y={height - paddingBottom + 15}
+            y={height - paddingBottom + 20}
             textAnchor="middle"
-            fontSize="8"
-            fill="#94a3b8"
-            className="font-bold"
-            transform={`rotate(45, ${getX(i)}, ${height - paddingBottom + 15})`}
+            fontSize="10"
+            fill="#64748b"
+            className="font-black"
+            transform={`rotate(45, ${getX(i)}, ${height - paddingBottom + 20})`}
           >
             {new Date(r.date).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit' })}
           </text>
