@@ -24,7 +24,7 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
   return (
     <div className="flex h-screen bg-slate-50 text-slate-900">
       {/* Sidebar */}
-      <aside className="w-64 bg-[#0F4C81] text-white flex flex-col">
+      <aside className="w-64 bg-[#0F4C81] text-white flex flex-col no-print">
         <div className="p-6 border-b border-white/10">
           <h1 className="text-xl font-bold tracking-tight">QC BK Lab Plus⁺</h1>
           <p className="text-xs text-white/60 mt-1 uppercase tracking-widest">Quality Control System</p>
@@ -67,7 +67,7 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 no-print">
           <h2 className="text-lg font-semibold text-slate-800">
             {filteredMenuItems.find(i => i.id === activeTab)?.label}
           </h2>
@@ -86,7 +86,7 @@ export default function Layout({ children, activeTab, setActiveTab, user, onLogo
         </header>
 
         {/* Page Area */}
-        <div className="flex-1 overflow-y-auto p-8">
+        <div className="flex-1 overflow-y-auto p-8 print:overflow-visible print:p-0">
           {children}
         </div>
       </main>

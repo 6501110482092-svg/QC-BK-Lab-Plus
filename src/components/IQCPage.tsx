@@ -412,7 +412,7 @@ function ReportModal({
         className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl my-8 cursor-default print:shadow-none print:my-0 print:rounded-none print:max-w-none" 
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white px-8 py-4 border-b flex items-center justify-between z-20 print:hidden">
+        <div className="sticky top-0 bg-white px-8 py-4 border-b flex items-center justify-between z-20 no-print">
            <div className="flex items-center space-x-3">
               <div className="p-2 bg-blue-50 text-[#0F4C81] rounded-lg">
                 <Camera size={20} />
@@ -425,7 +425,7 @@ function ReportModal({
            <div className="flex items-center space-x-3">
               <button 
                 onClick={() => window.print()}
-                className="flex items-center space-x-1 px-3 py-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                className="flex items-center space-x-1 px-3 py-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all no-print"
                 title="Print to PDF"
               >
                 <Printer size={18} />
@@ -433,7 +433,7 @@ function ReportModal({
               </button>
               <button 
                 onClick={onClose}
-                className="flex items-center space-x-1 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-all border border-red-100 shadow-sm shadow-red-200/50"
+                className="flex items-center space-x-1 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl transition-all border border-red-100 shadow-sm shadow-red-200/50 no-print"
                 title="Close"
               >
                 <X size={18} />

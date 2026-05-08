@@ -6,6 +6,36 @@
   --color-primary: #0F4C81;
 }
 
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-area, #print-area * {
+    visibility: visible !important;
+  }
+  #print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  /* Optimization for print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  /* Remove scrollbars in print */
+  body, html {
+    overflow: visible !important;
+    height: auto !important;
+  }
+}
+
 @layer base {
   body {
     @apply bg-slate-50 text-slate-900 font-sans;
