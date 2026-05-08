@@ -19,11 +19,11 @@ export default function LJChart({ results, config, level, instrumentId }: LJChar
     .filter(r => r.level === level && r.testId === config.id && r.instrumentId === instrumentId);
 
   const width = 800;
-  const height = 420;
+  const height = 320;
   const paddingLeft = 100;
   const paddingRight = 60;
-  const paddingTop = 40;
-  const paddingBottom = 60;
+  const paddingTop = 30;
+  const paddingBottom = 50;
   
   const chartHeight = height - paddingTop - paddingBottom;
   const chartWidth = width - paddingLeft - paddingRight;
@@ -91,12 +91,12 @@ export default function LJChart({ results, config, level, instrumentId }: LJChar
           <text
             key={`date-${i}`}
             x={getX(i)}
-            y={height - paddingBottom + 20}
+            y={height - paddingBottom + 15}
             textAnchor="middle"
             fontSize="10"
             fill="#64748b"
             className="font-black"
-            transform={`rotate(45, ${getX(i)}, ${height - paddingBottom + 20})`}
+            transform={`rotate(45, ${getX(i)}, ${height - paddingBottom + 15})`}
           >
             {new Date(r.date).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit' })}
           </text>

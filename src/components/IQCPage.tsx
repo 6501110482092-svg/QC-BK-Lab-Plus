@@ -470,7 +470,7 @@ function ReportModal({
                     </div>
                     <div className="text-right">
                       <p className="text-[11px] font-black text-slate-400 uppercase mb-1 tracking-widest">Digital Entry</p>
-                      <p className="text-base font-black text-slate-800 tracking-tight">BK LAB PLUS (IQC SYSTEM)</p>
+                      <p className="text-base font-black text-slate-800 tracking-tight">BK LAB PLUS <br /> (IQC SYSTEM)</p>
                     </div>
                   </div>
                 </td>
@@ -512,7 +512,7 @@ function ReportModal({
 
                     <div className="space-y-4 print:break-inside-avoid">
                       <h4 className="text-[12px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">IQC Trend Analysis (Levey-Jennings)</h4>
-                      <div className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm overflow-hidden h-[420px]">
+                      <div className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm overflow-hidden h-[320px]">
                         <LJChart results={results} config={config} level={level as any} instrumentId={instrument?.id || ''} />
                       </div>
                     </div>
