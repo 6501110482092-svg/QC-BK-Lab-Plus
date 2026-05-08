@@ -448,126 +448,149 @@ function ReportModal({
            </div>
         </div>
 
-        <div className="p-8 space-y-2 bg-white print:p-12 print:block print:overflow-visible">
-          {/* Main Report Container - Natural Page Breaking */}
-          <div className="flex flex-col space-y-8 print:h-auto print:mb-0 print:overflow-visible relative">
-            {/* Header (Page 1 Only) */}
-            <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4 print:break-inside-avoid">
-              <div>
-                <h1 className="text-3xl font-black text-[#0F4C81] mb-1 tracking-tighter uppercase italic">Internal Quality Control Report</h1>
-                <div className="flex items-center space-x-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                   <span className="text-slate-600">TEST: {config.testName}</span>
-                   <span className="w-2 bg-slate-200 rounded-full h-2"></span>
-                   <span className="text-slate-600">LV: {level}</span>
-                   <span className="w-2 bg-slate-200 rounded-full h-2"></span>
-                   <span>DATE: {new Date().toLocaleDateString('th-TH')}</span>
-                   <span className="w-2 bg-slate-200 rounded-full h-2"></span>
-                   <span className="text-slate-400 italic text-[9px]">UNITS: {config.unit}</span>
-                </div>
-              </div>
-              <div className="text-right">
-                 <p className="text-[11px] font-black text-slate-400 uppercase mb-1 tracking-widest">Digital Entry</p>
-                 <p className="text-base font-black text-slate-800 tracking-tight">BK LAB PLUS (IQC SYSTEM)</p>
-              </div>
-            </div>
-
-            {/* Statistics Grid */}
-            <div className="grid grid-cols-4 gap-6 bg-slate-50/50 p-6 rounded-2xl border border-slate-200 print:break-inside-avoid">
-               <div className="space-y-1">
-                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Analyzer</p>
-                  <p className="text-sm font-black text-slate-800 truncate">{instrument?.name || 'N/A'}</p>
-                  <p className="text-[11px] font-bold text-slate-400">{instrument?.model || '-'}</p>
-               </div>
-               <div className="space-y-1">
-                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Target Parameters</p>
-                  <div className="text-[13px] font-black text-slate-700 flex flex-wrap gap-x-3">
-                     <span>M: <span className="text-[#0F4C81]">{levelParams?.mean}</span></span>
-                     <span>SD: <span className="text-slate-600">{levelParams?.sd}</span></span>
-                     <span>CV: <span className="text-emerald-600">{levelParams?.cv}%</span></span>
+        <div className="p-8 bg-white print:p-0 print:block print:overflow-visible">
+          {/* Print Table Layout for Repeating Elements */}
+          <table className="w-full border-none">
+            {/* Repeating Header */}
+            <thead className="print:table-header-group">
+              <tr>
+                <td className="p-0 border-none">
+                  <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4 mb-8 print:pt-4">
+                    <div>
+                      <h1 className="text-2xl font-black text-[#0F4C81] mb-1 tracking-tighter uppercase italic">Internal Quality Control Report</h1>
+                      <div className="flex items-center space-x-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                        <span className="text-slate-600">TEST: {config.testName}</span>
+                        <span className="w-2 bg-slate-200 rounded-full h-2"></span>
+                        <span className="text-slate-600">LV: {level}</span>
+                        <span className="w-2 bg-slate-200 rounded-full h-2"></span>
+                        <span>DATE: {new Date().toLocaleDateString('th-TH')}</span>
+                        <span className="w-2 bg-slate-200 rounded-full h-2"></span>
+                        <span className="text-slate-400 italic text-[9px]">UNITS: {config.unit}</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[11px] font-black text-slate-400 uppercase mb-1 tracking-widest">Digital Entry</p>
+                      <p className="text-base font-black text-slate-800 tracking-tight">BK LAB PLUS (IQC SYSTEM)</p>
+                    </div>
                   </div>
-               </div>
-               <div className="space-y-1">
-                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">QC Metrics</p>
-                  <div className="text-[13px] font-black text-slate-700 flex flex-wrap gap-x-3">
-                     <span>Sigma: <span className="text-[#0F4C81]">{eqa?.sigma.toFixed(2) || 'N/A'}</span></span>
-                     <span>Bias%: <span className="text-amber-600">{eqa?.bias.toFixed(2) || '0'}%</span></span>
-                  </div>
-               </div>
-               <div className="text-right border-l-2 border-white pl-6 flex flex-col justify-center">
-                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider leading-none">Unit</p>
-                  <p className="text-base font-black text-[#0F4C81] mt-2">{config.unit}</p>
-               </div>
-            </div>
+                </td>
+              </tr>
+            </thead>
 
-            <div className="space-y-4 print:break-inside-avoid">
-               <h4 className="text-[12px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">IQC Trend Analysis (Levey-Jennings)</h4>
-               <div className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm overflow-hidden h-[420px]">
-                  <LJChart results={results} config={config} level={level as any} instrumentId={instrument?.id || ''} />
-               </div>
-            </div>
+            {/* Content Body */}
+            <tbody>
+              <tr>
+                <td className="p-0 border-none">
+                  <div className="space-y-8 pb-12">
+                    {/* Statistics Grid */}
+                    <div className="grid grid-cols-4 gap-6 bg-slate-50/50 p-6 rounded-2xl border border-slate-200">
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Analyzer</p>
+                        <p className="text-sm font-black text-slate-800 truncate">{instrument?.name || 'N/A'}</p>
+                        <p className="text-[11px] font-bold text-slate-400">{instrument?.model || '-'}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Target Parameters</p>
+                        <div className="text-[13px] font-black text-slate-700 flex flex-wrap gap-x-3">
+                          <span>M: <span className="text-[#0F4C81]">{levelParams?.mean}</span></span>
+                          <span>SD: <span className="text-slate-600">{levelParams?.sd}</span></span>
+                          <span>CV: <span className="text-emerald-600">{levelParams?.cv}%</span></span>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">QC Metrics</p>
+                        <div className="text-[13px] font-black text-slate-700 flex flex-wrap gap-x-3">
+                          <span>Sigma: <span className="text-[#0F4C81]">{eqa?.sigma.toFixed(2) || 'N/A'}</span></span>
+                          <span>Bias%: <span className="text-amber-600">{eqa?.bias.toFixed(2) || '0'}%</span></span>
+                        </div>
+                      </div>
+                      <div className="text-right border-l-2 border-white pl-6 flex flex-col justify-center">
+                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider leading-none">Unit</p>
+                        <p className="text-base font-black text-[#0F4C81] mt-2">{config.unit}</p>
+                      </div>
+                    </div>
 
-            <div className="space-y-4">
-               <h4 className="text-[12px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3 print:break-inside-avoid">Analytical Run History</h4>
-               <div className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm">
-                  <table className="w-full text-left text-[7.5px] border-collapse">
-                    <thead className="bg-[#0F4C81] text-white font-black uppercase tracking-wider print:table-header-group">
-                      <tr>
-                        <th className="px-4 py-3">Timestamp</th>
-                        <th className="px-4 py-3">Operator</th>
-                        <th className="px-4 py-3 text-center">Value</th>
-                        <th className="px-4 py-3 text-center">Z-Score</th>
-                        <th className="px-4 py-3 text-right">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 italic">
-                      {sortedResults.map(r => (
-                        <tr key={r.id} className="print:break-inside-avoid">
-                          <td className="px-4 py-2 font-bold text-slate-500">
-                             {new Date(r.date).toLocaleString('th-TH', { 
-                               day: '2-digit', month: '2-digit', year: '2-digit',
-                               hour: '2-digit', minute: '2-digit'
-                             })}
-                          </td>
-                          <td className="px-4 py-2 truncate max-w-[120px] font-bold text-slate-700">{r.operatorName}</td>
-                          <td className="px-4 py-2 text-black text-center text-[12px] tabular-nums tracking-tighter">{r.value}</td>
-                          <td className="px-4 py-2 text-slate-400 text-center font-black">
-                             {((r.value - levelParams!.mean) / levelParams!.sd).toFixed(2)}
-                          </td>
-                          <td className="px-4 py-2 text-right">
-                             {r.westgardViolations.length > 0 ? (
-                               <span className="text-red-700 font-black text-[7px] bg-red-50 px-2 py-1 rounded border border-red-100">{r.westgardViolations.join(', ')}</span>
-                             ) : <span className="text-emerald-600 font-black text-[10px]">PASS</span>}
-                          </td>
-                        </tr>
-                      ))}
-                      {sortedResults.length === 0 && (
-                        <tr>
-                          <td colSpan={5} className="px-4 py-10 text-center text-slate-300 italic font-bold">No results found for selected period</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-               </div>
-            </div>
+                    <div className="space-y-4 print:break-inside-avoid">
+                      <h4 className="text-[12px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">IQC Trend Analysis (Levey-Jennings)</h4>
+                      <div className="bg-white p-2 rounded-xl border border-slate-100 shadow-sm overflow-hidden h-[420px]">
+                        <LJChart results={results} config={config} level={level as any} instrumentId={instrument?.id || ''} />
+                      </div>
+                    </div>
 
-            {/* Verification Section - Page End */}
-            <div className="flex justify-between items-end pt-12 border-t border-slate-200 print:break-inside-avoid">
-               <div className="flex space-x-12">
-                  <div className="space-y-2">
-                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-tight">OPERATOR SIGNATURE</p>
-                     <div className="w-64 border-b-2 border-[#0F4C81] h-8"></div>
+                    {/* Results History - Start on New Page */}
+                    <div className="space-y-4 pt-8 print:break-before-page">
+                      <h4 className="text-[12px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">Analytical Run History</h4>
+                      <div className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm">
+                        <table className="w-full text-left text-[7px] border-collapse">
+                          <thead className="bg-[#0F4C81] text-white font-black uppercase tracking-wider print:table-header-group">
+                            <tr>
+                              <th className="px-4 py-3">Timestamp</th>
+                              <th className="px-4 py-3">Operator</th>
+                              <th className="px-4 py-3 text-center">Value</th>
+                              <th className="px-4 py-3 text-center">Z-Score</th>
+                              <th className="px-4 py-3 text-right">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 italic">
+                            {sortedResults.map(r => (
+                              <tr key={r.id} className="print:break-inside-avoid">
+                                <td className="px-4 py-2 text-slate-500">
+                                  {new Date(r.date).toLocaleString('th-TH', { 
+                                    day: '2-digit', month: '2-digit', year: '2-digit',
+                                    hour: '2-digit', minute: '2-digit'
+                                  })}
+                                </td>
+                                <td className="px-4 py-2 truncate max-w-[120px] text-slate-700">{r.operatorName}</td>
+                                <td className="px-4 py-2 text-black text-center text-[10.5px] tabular-nums tracking-tighter">{r.value}</td>
+                                <td className="px-4 py-2 text-slate-400 text-center">
+                                  {((r.value - levelParams!.mean) / levelParams!.sd).toFixed(2)}
+                                </td>
+                                <td className="px-4 py-2 text-right">
+                                  {r.westgardViolations.length > 0 ? (
+                                    <span className="text-red-700 font-bold text-[7px] bg-red-50 px-2 py-1 rounded border border-red-100">{r.westgardViolations.join(', ')}</span>
+                                  ) : <span className="text-emerald-600 text-[10px]">PASS</span>}
+                                </td>
+                              </tr>
+                            ))}
+                            {sortedResults.length === 0 && (
+                              <tr>
+                                <td colSpan={5} className="px-4 py-10 text-center text-slate-300 italic font-bold">No results found for selected period</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-tight">SUPERVISOR REVIEW</p>
-                     <div className="w-64 border-b-2 border-[#0F4C81] h-8"></div>
+                </td>
+              </tr>
+            </tbody>
+
+            {/* Repeating Footer */}
+            <tfoot className="print:table-footer-group">
+              <tr>
+                <td className="p-0 border-none">
+                  <div className="flex justify-between items-end pt-12 border-t border-slate-200 mt-8 mb-4 print:pb-8 no-break-inside">
+                    <div className="flex space-x-12">
+                      <div className="space-y-2">
+                        <p className="text-[11px] font-black text-slate-500 uppercase tracking-tight">OPERATOR SIGNATURE</p>
+                        <div className="w-64 border-b-2 border-[#0F4C81] h-8"></div>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-[11px] font-black text-slate-500 uppercase tracking-tight">SUPERVISOR REVIEW</p>
+                        <div className="w-64 border-b-2 border-[#0F4C81] h-8"></div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[11px] font-black text-slate-800 italic uppercase">QA Verified</p>
+                    </div>
                   </div>
-               </div>
-               <div className="text-right">
-                  <p className="text-[11px] font-black text-slate-800 italic uppercase">QA Verified</p>
-               </div>
-            </div>
-          </div>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
         </div>
+
       </div>
     </div>
   );
