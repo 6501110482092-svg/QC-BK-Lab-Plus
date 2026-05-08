@@ -7,7 +7,6 @@
 }
 
 @media print {
-  /* บังคับให้พื้นหลังและตัวอักษรพิมพ์ออกมาแน่นอน */
   html, body {
     background: white !important;
     margin: 0 !important;
@@ -15,9 +14,11 @@
     width: 210mm !important;
     height: auto !important;
     overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  /* ซ่อน UI ทั้งหมดที่ไม่ใช่ส่วนรายงาน */
+  /* ซ่อน UI ทั้งหมดที่ไม่เกี่ยวข้อง */
   #root > div > nav,
   #root > div > aside,
   #root > div > main header,
@@ -27,7 +28,7 @@
     display: none !important;
   }
 
-  /* แสดงเฉพาะพื้นที่พิมพ์ และอนุญาตให้ไหลลงหน้าต่อไปได้ */
+  /* แสดงพื้นที่พิมพ์ */
   #print-area {
     display: block !important;
     position: relative !important;
@@ -36,10 +37,12 @@
     margin: 0 !important;
     padding: 0 !important;
     overflow: visible !important;
+    visibility: visible !important;
   }
 
   #print-area * {
     visibility: visible !important;
+    opacity: 1 !important;
   }
 
   @page {
@@ -50,11 +53,13 @@
   .page-break-after-always {
     page-break-after: always !important;
     break-after: page !important;
+    display: block !important;
+    clear: both !important;
   }
 
-  /* ป้องกันการตัดแถวตารางกลางกล่อง */
   tr {
     page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 }
 

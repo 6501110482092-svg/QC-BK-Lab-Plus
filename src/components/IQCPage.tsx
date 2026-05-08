@@ -407,9 +407,9 @@ function ReportModal({
   const sortedResults = [...results].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   // Chunking for multiple pages
-  const firstPageResults = sortedResults.slice(0, 15); // ปรับเป็น 15 แถวตามที่ต้องการ
+  const firstPageResults = sortedResults.slice(0, 15); 
   const remainingResults = sortedResults.slice(15);
-  const resultsPerPage = 40; // continuation pages can hold more results
+  const resultsPerPage = 45; 
   const continuationPages = [];
   for (let i = 0; i < remainingResults.length; i += resultsPerPage) {
     continuationPages.push(remainingResults.slice(i, i + resultsPerPage));
@@ -417,14 +417,14 @@ function ReportModal({
 
   return (
     <div 
-      id="print-area"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto cursor-pointer print:relative print:bg-white print:p-0 print:overflow-visible print:z-0 printable-report-container"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto cursor-pointer print:block print:bg-white print:p-0 print:static"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div 
-        className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl my-8 cursor-default print:shadow-none print:my-0 print:rounded-none print:max-w-none print:w-full" 
+        id="print-area"
+        className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl my-8 cursor-default print:shadow-none print:my-0 print:rounded-none print:max-w-none print:w-full print:block" 
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-white px-8 py-4 border-b flex items-center justify-between z-20 no-print">
@@ -459,12 +459,12 @@ function ReportModal({
 
         <div className="p-8 space-y-2 bg-white print:p-8">
           {/* Page 1 */}
-          <div className="flex flex-col space-y-4 print:min-h-[270mm] print:mb-0 print:overflow-hidden page-break-after-always">
+          <div className="first-print-page flex flex-col space-y-2 print:min-h-[287mm] print:mb-0 print:overflow-visible page-break-after-always">
             {/* Header */}
-            <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
+            <div className="flex justify-between items-start border-b-2 border-slate-900 pb-2">
               <div>
-                <h1 className="text-2xl font-black text-[#0F4C81] mb-0.5 tracking-tighter uppercase italic">Internal Quality Control Report</h1>
-                <div className="flex items-center space-x-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <h1 className="text-xl font-black text-[#0F4C81] mb-0.5 tracking-tighter uppercase italic">Internal Quality Control Report</h1>
+                <div className="flex items-center space-x-3 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                    <span className="text-slate-600">TEST: {config.testName}</span>
                    <span className="w-1.5 bg-slate-200 rounded-full h-1.5"></span>
                    <span className="text-slate-600">LV: {level}</span>
@@ -475,76 +475,76 @@ function ReportModal({
                 </div>
               </div>
               <div className="text-right">
-                 <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Page 1</p>
-                 <p className="text-sm font-black text-slate-800 tracking-tight">BK LAB PLUS (IQC SYSTEM)</p>
+                 <p className="text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Page 1</p>
+                 <p className="text-xs font-black text-slate-800 tracking-tight">BK LAB PLUS (IQC SYSTEM)</p>
               </div>
             </div>
 
             {/* Statistics Grid */}
-            <div className="grid grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+            <div className="grid grid-cols-4 gap-2 bg-slate-50 p-2 rounded-xl border border-slate-100">
                <div>
-                  <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Analyzer</p>
-                  <p className="text-[10px] font-black text-slate-700 truncate">{instrument?.name || 'N/A'}</p>
-                  <p className="text-[9px] font-bold text-slate-400">{instrument?.model || '-'}</p>
+                  <p className="text-[7px] font-black text-slate-400 uppercase mb-0.5">Analyzer</p>
+                  <p className="text-[9px] font-black text-slate-700 truncate">{instrument?.name || 'N/A'}</p>
+                  <p className="text-[8px] font-bold text-slate-400">{instrument?.model || '-'}</p>
                </div>
                <div>
-                  <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Target Parameters</p>
-                  <div className="text-[9px] font-bold text-slate-700 flex flex-wrap gap-x-2">
+                  <p className="text-[7px] font-black text-slate-400 uppercase mb-0.5">Target Parameters</p>
+                  <div className="text-[8px] font-bold text-slate-700 flex flex-wrap gap-x-2">
                      <span>M: <span className="font-black">{levelParams?.mean}</span></span>
                      <span>SD: <span className="font-black">{levelParams?.sd}</span></span>
                      <span>CV: <span className="text-emerald-600 font-black">{levelParams?.cv}%</span></span>
                   </div>
                </div>
                <div>
-                  <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Metrics</p>
-                  <div className="text-[9px] font-bold text-slate-700 flex flex-wrap gap-x-2">
+                  <p className="text-[7px] font-black text-slate-400 uppercase mb-0.5">Metrics</p>
+                  <div className="text-[8px] font-bold text-slate-700 flex flex-wrap gap-x-2">
                      <span>Sigma: <span className="font-black text-[#0F4C81]">{eqa?.sigma.toFixed(2) || 'N/A'}</span></span>
                      <span>Bias%: <span className="font-black">{eqa?.bias.toFixed(2) || '0'}%</span></span>
                   </div>
                </div>
-               <div className="text-right border-l border-slate-200 pl-3">
-                  <p className="text-[8px] font-black text-slate-400 uppercase">Unit</p>
-                  <p className="text-lg font-black text-[#0F4C81]">{config.unit}</p>
+               <div className="text-right border-l border-slate-200 pl-2">
+                  <p className="text-[7px] font-black text-slate-400 uppercase">Unit</p>
+                  <p className="text-base font-black text-[#0F4C81]">{config.unit}</p>
                </div>
             </div>
 
-            <div className="space-y-2">
-               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">IQC Trend Analysis (Levey-Jennings)</h4>
-               <div className="bg-white p-1 rounded-2xl border border-slate-100 shadow-sm overflow-hidden h-[180px]">
+            <div className="space-y-1">
+               <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-2">IQC Trend Analysis (Levey-Jennings)</h4>
+               <div className="bg-white p-1 rounded-xl border border-slate-100 shadow-sm overflow-hidden h-[160px]">
                   <LJChart results={results} config={config} level={level as any} instrumentId={instrument?.id || ''} />
                </div>
             </div>
 
-            <div className="space-y-2">
-               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">Analytical Run History</h4>
+            <div className="space-y-1">
+               <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-2">Analytical Run History</h4>
                <div className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm">
-                  <table className="w-full text-left text-[9px]">
+                  <table className="w-full text-left text-[8px]">
                     <thead className="bg-[#0F4C81] text-white font-black uppercase tracking-wider">
                       <tr>
-                        <th className="px-3 py-1.5">Timestamp</th>
-                        <th className="px-3 py-1.5">Operator</th>
-                        <th className="px-3 py-1.5 text-center">Value</th>
-                        <th className="px-3 py-1.5 text-center">Z-Score</th>
-                        <th className="px-3 py-1.5 text-right">Status</th>
+                        <th className="px-2 py-1">Timestamp</th>
+                        <th className="px-2 py-1">Operator</th>
+                        <th className="px-2 py-1 text-center">Value</th>
+                        <th className="px-2 py-1 text-center">Z-Score</th>
+                        <th className="px-2 py-1 text-right">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 italic">
                       {firstPageResults.map(r => (
                         <tr key={r.id}>
-                          <td className="px-3 py-1 font-bold text-slate-500">
+                          <td className="px-2 py-0.5 font-bold text-slate-500">
                              {new Date(r.date).toLocaleString('th-TH', { 
                                day: '2-digit', month: '2-digit', year: '2-digit',
                                hour: '2-digit', minute: '2-digit'
                              })}
                           </td>
-                          <td className="px-3 py-1 truncate max-w-[120px]">{r.operatorName}</td>
-                          <td className="px-3 py-1 font-black text-slate-800 text-center">{r.value}</td>
-                          <td className="px-3 py-1 text-slate-400 text-center font-bold">
+                          <td className="px-2 py-0.5 truncate max-w-[120px]">{r.operatorName}</td>
+                          <td className="px-2 py-0.5 font-black text-slate-800 text-center">{r.value}</td>
+                          <td className="px-2 py-0.5 text-slate-400 text-center font-bold">
                              {((r.value - levelParams!.mean) / levelParams!.sd).toFixed(2)}
                           </td>
-                          <td className="px-3 py-1 text-right">
+                          <td className="px-2 py-0.5 text-right">
                              {r.westgardViolations.length > 0 ? (
-                               <span className="text-red-700 font-bold text-[8px] bg-red-50 px-2 py-0.5 rounded border border-red-100">{r.westgardViolations.join(', ')}</span>
+                               <span className="text-red-700 font-bold text-[7px] bg-red-50 px-1 py-0.5 rounded border border-red-100">{r.westgardViolations.join(', ')}</span>
                              ) : <span className="text-emerald-600 font-black">PASS</span>}
                           </td>
                         </tr>
@@ -560,26 +560,26 @@ function ReportModal({
             </div>
 
             {/* Verification Section - Page 1 */}
-            <div className="mt-auto flex justify-between items-end pt-4 border-t border-slate-200">
+            <div className="mt-auto flex justify-between items-end pt-2 border-t border-slate-200">
                <div className="flex space-x-12">
                   <div className="space-y-1">
-                     <p className="text-[9px] font-black text-slate-500 uppercase tracking-tight">OPERATOR SIGNATURE</p>
-                     <div className="w-48 border-b-2 border-[#0F4C81] h-6"></div>
+                     <p className="text-[8px] font-black text-slate-500 uppercase tracking-tight">OPERATOR SIGNATURE</p>
+                     <div className="w-48 border-b-2 border-[#0F4C81] h-5"></div>
                   </div>
                   <div className="space-y-1">
-                     <p className="text-[9px] font-black text-slate-500 uppercase tracking-tight">SUPERVISOR REVIEW</p>
-                     <div className="w-48 border-b-2 border-[#0F4C81] h-6"></div>
+                     <p className="text-[8px] font-black text-slate-500 uppercase tracking-tight">SUPERVISOR REVIEW</p>
+                     <div className="w-48 border-b-2 border-[#0F4C81] h-5"></div>
                   </div>
                </div>
                <div className="text-right">
-                  <p className="text-[9px] font-black text-slate-800 italic uppercase">QA Verified</p>
+                  <p className="text-[8px] font-black text-slate-800 italic uppercase">QA Verified</p>
                </div>
             </div>
           </div>
 
           {/* Continuation Pages (Page 2, 3, 4, ...) */}
           {continuationPages.map((pageResults, index) => (
-            <div key={index} className="print:break-before-page pt-5 flex flex-col space-y-4 block print:min-h-[275mm] print:overflow-hidden page-break-after-always">
+            <div key={index} className="print:break-before-page pt-5 flex flex-col space-y-4 block print:min-h-[287mm] print:overflow-visible page-break-after-always">
                {/* Header for Continuation Page */}
                <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
                   <div>
