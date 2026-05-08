@@ -27,10 +27,10 @@
     display: none !important;
   }
 
-  /* แสดงเฉพาะพื้นที่พิมพ์ */
+  /* แสดงเฉพาะพื้นที่พิมพ์ และอนุญาตให้ไหลลงหน้าต่อไปได้ */
   #print-area {
     display: block !important;
-    position: static !important;
+    position: relative !important;
     width: 210mm !important;
     background: white !important;
     margin: 0 !important;
@@ -38,7 +38,6 @@
     overflow: visible !important;
   }
 
-  /* บังคับให้ทุกอย่างในพื้นที่พิมพ์แสดงผล */
   #print-area * {
     visibility: visible !important;
   }
@@ -46,6 +45,11 @@
   @page {
     size: A4;
     margin: 0;
+  }
+
+  .page-break-after-always {
+    page-break-after: always !important;
+    break-after: page !important;
   }
 
   /* ป้องกันการตัดแถวตารางกลางกล่อง */

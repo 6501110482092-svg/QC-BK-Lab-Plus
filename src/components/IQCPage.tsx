@@ -407,8 +407,8 @@ function ReportModal({
   const sortedResults = [...results].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   // Chunking for multiple pages
-  const firstPageResults = sortedResults.slice(0, 10); // ลดเหลือ 10 แถวเพื่อให้มั่นใจว่าที่เซ็นอยู่ในหน้าแรกแน่นอน
-  const remainingResults = sortedResults.slice(10);
+  const firstPageResults = sortedResults.slice(0, 15); // ปรับเป็น 15 แถวตามที่ต้องการ
+  const remainingResults = sortedResults.slice(15);
   const resultsPerPage = 40; // continuation pages can hold more results
   const continuationPages = [];
   for (let i = 0; i < remainingResults.length; i += resultsPerPage) {
@@ -457,9 +457,9 @@ function ReportModal({
            </div>
         </div>
 
-        <div className="p-8 space-y-4 bg-white print:p-8">
+        <div className="p-8 space-y-2 bg-white print:p-8">
           {/* Page 1 */}
-          <div className="flex flex-col space-y-4 print:min-h-[285mm] print:mb-0 print:overflow-hidden page-break-after-always">
+          <div className="flex flex-col space-y-4 print:min-h-[270mm] print:mb-0 print:overflow-hidden page-break-after-always">
             {/* Header */}
             <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
               <div>
@@ -510,7 +510,7 @@ function ReportModal({
 
             <div className="space-y-2">
                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">IQC Trend Analysis (Levey-Jennings)</h4>
-               <div className="bg-white p-1 rounded-2xl border border-slate-100 shadow-sm overflow-hidden h-[200px]">
+               <div className="bg-white p-1 rounded-2xl border border-slate-100 shadow-sm overflow-hidden h-[180px]">
                   <LJChart results={results} config={config} level={level as any} instrumentId={instrument?.id || ''} />
                </div>
             </div>
@@ -579,7 +579,7 @@ function ReportModal({
 
           {/* Continuation Pages (Page 2, 3, 4, ...) */}
           {continuationPages.map((pageResults, index) => (
-            <div key={index} className="print:break-before-page pt-10 flex flex-col space-y-4 block print:min-h-[285mm] print:overflow-hidden page-break-after-always">
+            <div key={index} className="print:break-before-page pt-5 flex flex-col space-y-4 block print:min-h-[275mm] print:overflow-hidden page-break-after-always">
                {/* Header for Continuation Page */}
                <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
                   <div>

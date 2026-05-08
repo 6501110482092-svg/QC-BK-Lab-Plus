@@ -28,16 +28,16 @@ export default function LJChart({ results, config, level, instrumentId }: LJChar
   const chartHeight = height - paddingTop - paddingBottom;
   const chartWidth = width - paddingLeft - paddingRight;
 
-  const dataMax = Math.max(...filteredResults.map(r => r.value), mean + 3.3 * sd);
-  const dataMin = Math.min(...filteredResults.map(r => r.value), mean - 3.3 * sd);
+  const dataMax = Math.max(...filteredResults.map(r => r.value), mean + 3.1 * sd);
+  const dataMin = Math.min(...filteredResults.map(r => r.value), mean - 3.1 * sd);
   const rangeSpread = Math.max(dataMax - dataMin, 0.0001);
-  const yMax = dataMax + rangeSpread * 0.15;
-  const yMin = dataMin - rangeSpread * 0.15;
+  const yMax = dataMax + rangeSpread * 0.1;
+  const yMin = dataMin - rangeSpread * 0.1;
 
   const getY = (val: number) => {
     const range = yMax - yMin;
     if (range === 0) return paddingTop + chartHeight / 2;
-    const rawY = paddingTop + chartHeight - ((val - yMin) / range) * chartHeight;
+    const rawY = paddingTop + (chartHeight * (yMax - val)) / range;
     return rawY;
   };
 
