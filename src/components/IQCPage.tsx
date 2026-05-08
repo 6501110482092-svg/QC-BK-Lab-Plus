@@ -448,7 +448,7 @@ function ReportModal({
            </div>
         </div>
 
-        <div className="p-8 bg-white print:p-0 print:block print:overflow-visible">
+        <div className="p-8 bg-white print:px-[25mm] print:py-[15mm] print:block print:overflow-visible">
           {/* Print Table Layout for Repeating Elements */}
           <table className="w-full border-none">
             {/* Repeating Header */}
