@@ -498,9 +498,9 @@ function ReportModal({
              </div>
           </div>
 
-          {/* History Table - Latest 30 Items */}
+          {/* History Table - Page 1 (Entries 1-10) */}
           <div className="space-y-4">
-             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">Analytical Run History (Latest 30)</h4>
+             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">Analytical Run History</h4>
              <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
                 <table className="w-full text-left text-[10px]">
                   <thead className="bg-[#0F4C81] text-white font-black uppercase tracking-wider">
@@ -513,7 +513,7 @@ function ReportModal({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 italic">
-                    {results.slice().reverse().slice(0, 30).map(r => (
+                    {results.slice().reverse().slice(0, 10).map(r => (
                       <tr key={r.id}>
                         <td className="px-4 py-2 font-bold text-slate-500">
                           {new Date(r.date).toLocaleString('th-TH', { 
@@ -543,16 +543,16 @@ function ReportModal({
              </div>
           </div>
 
-          {/* Verification Section - Compact */}
+          {/* Verification Section - Page 1 */}
           <div className="flex justify-between items-end pt-4 border-t border-dashed border-slate-200">
-             <div className="flex space-x-8">
+             <div className="flex space-x-12">
                 <div className="space-y-1">
-                   <p className="text-[8px] font-black text-slate-400 uppercase">Operator Sign</p>
-                   <div className="w-32 border-b border-slate-900 h-5"></div>
+                   <p className="text-[9px] font-black text-slate-500 uppercase tracking-tight">OPERATOR SIGNATURE</p>
+                   <div className="w-48 border-b-2 border-[#0F4C81] h-6"></div>
                 </div>
                 <div className="space-y-1">
-                   <p className="text-[8px] font-black text-slate-400 uppercase">Supervisor Sign</p>
-                   <div className="w-32 border-b border-slate-900 h-5"></div>
+                   <p className="text-[9px] font-black text-slate-500 uppercase tracking-tight">SUPERVISOR REVIEW</p>
+                   <div className="w-48 border-b-2 border-[#0F4C81] h-6"></div>
                 </div>
              </div>
              <div className="text-right">
@@ -560,6 +560,88 @@ function ReportModal({
                 <p className="text-[9px] font-black text-slate-800 italic uppercase">QA Verified</p>
              </div>
           </div>
+
+          {/* Page 2 - Continuation (Exceeding 10 entries) */}
+          {results.length > 10 && (
+            <div className="print:break-before-page pt-10 space-y-8 block">
+               {/* Header for Page 2 */}
+               <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
+                  <div>
+                    <h1 className="text-2xl font-black text-[#0F4C81] mb-0.5 tracking-tighter uppercase italic">Internal Quality Control Report (Cont.)</h1>
+                    <div className="flex items-center space-x-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                       <span className="text-slate-600">TEST: {config.testName}</span>
+                       <span className="w-1.5 bg-slate-200 rounded-full h-1.5"></span>
+                       <span className="text-slate-600">LV: {level}</span>
+                    </div>
+                  </div>
+                  <div className="text-right no-print">
+                     <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Page 2</p>
+                     <p className="text-xs font-bold text-slate-400 italic">Continuation of Analytical Run History</p>
+                  </div>
+                  <div className="text-right hidden print:block">
+                     <p className="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-widest">Institution</p>
+                     <p className="text-sm font-black text-slate-800 tracking-tight">BK LAB PLUS (IQC SYSTEM)</p>
+                  </div>
+               </div>
+
+               <div className="space-y-4">
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">Extended Run History</h4>
+                  <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+                    <table className="w-full text-left text-[10px]">
+                      <thead className="bg-[#0F4C81] text-white font-black uppercase tracking-wider">
+                        <tr>
+                          <th className="px-4 py-3">Timestamp</th>
+                          <th className="px-4 py-3">Operator</th>
+                          <th className="px-4 py-3 text-center">Value</th>
+                          <th className="px-4 py-3 text-center">Z-Score</th>
+                          <th className="px-4 py-3 text-right">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 italic">
+                        {results.slice().reverse().slice(10).map(r => (
+                          <tr key={r.id}>
+                            <td className="px-4 py-2 font-bold text-slate-500">
+                              {new Date(r.date).toLocaleString('th-TH', { 
+                                day: '2-digit', month: '2-digit', year: 'numeric',
+                                hour: '2-digit', minute: '2-digit'
+                              })}
+                            </td>
+                            <td className="px-4 py-2 truncate max-w-[120px]">{r.operatorName}</td>
+                            <td className="px-4 py-2 font-black text-slate-800 text-center">{r.value}</td>
+                            <td className="px-4 py-2 text-slate-400 text-center font-bold">
+                               {((r.value - levelParams!.mean) / levelParams!.sd).toFixed(2)}
+                            </td>
+                            <td className="px-4 py-2 text-right">
+                               {r.westgardViolations.length > 0 ? (
+                                 <span className="text-red-700 font-bold text-[9px] bg-red-50 px-2 py-0.5 rounded border border-red-100">{r.westgardViolations.join(', ')}</span>
+                               ) : <span className="text-emerald-600 font-black">PASS</span>}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+               </div>
+
+               {/* Verification for Page 2 */}
+               <div className="flex justify-between items-end pt-12 border-t border-dashed border-slate-200">
+                  <div className="flex space-x-12">
+                     <div className="space-y-1">
+                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-tight">OPERATOR SIGNATURE</p>
+                        <div className="w-48 border-b-2 border-[#0F4C81] h-6"></div>
+                     </div>
+                     <div className="space-y-1">
+                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-tight">SUPERVISOR REVIEW</p>
+                        <div className="w-48 border-b-2 border-[#0F4C81] h-6"></div>
+                     </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[7px] font-bold text-slate-300">BK-LAB IQC v2.5 • Official Transcript (Cont.)</p>
+                    <p className="text-[9px] font-black text-slate-800 italic uppercase">QA Verified</p>
+                  </div>
+               </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
