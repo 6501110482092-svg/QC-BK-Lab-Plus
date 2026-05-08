@@ -403,13 +403,14 @@ function ReportModal({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto cursor-pointer print:static print:bg-white print:p-0 print:overflow-visible"
+      id="print-area"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto cursor-pointer print:relative print:bg-white print:p-0 print:overflow-visible print:z-0"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div 
-        className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl my-8 cursor-default print:shadow-none print:my-0 print:rounded-none print:max-w-none" 
+        className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl my-8 cursor-default print:shadow-none print:my-0 print:rounded-none print:max-w-none print:w-full" 
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-white px-8 py-4 border-b flex items-center justify-between z-20 no-print">
@@ -442,7 +443,7 @@ function ReportModal({
            </div>
         </div>
 
-        <div className="p-8 space-y-8 bg-white print:p-8" id="print-area">
+        <div className="p-8 space-y-8 bg-white print:p-8">
           {/* Header */}
           <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
             <div>
