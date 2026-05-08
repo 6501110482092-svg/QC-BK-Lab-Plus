@@ -407,9 +407,9 @@ function ReportModal({
   const sortedResults = [...results].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   // Chunking for multiple pages
-  const firstPageResults = sortedResults.slice(0, 10);
-  const remainingResults = sortedResults.slice(10);
-  const resultsPerPage = 25; // continuation pages can hold more results
+  const firstPageResults = sortedResults.slice(0, 25);
+  const remainingResults = sortedResults.slice(25);
+  const resultsPerPage = 45; // continuation pages can hold more results
   const continuationPages = [];
   for (let i = 0; i < remainingResults.length; i += resultsPerPage) {
     continuationPages.push(remainingResults.slice(i, i + resultsPerPage));
@@ -459,7 +459,7 @@ function ReportModal({
 
         <div className="p-8 space-y-8 bg-white print:p-8">
           {/* Page 1 */}
-          <div className="space-y-8 min-h-[950px] print:min-h-0">
+          <div className="flex flex-col space-y-4 print:min-h-[280mm] print:mb-0">
             {/* Header */}
             <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
               <div>
@@ -508,10 +508,9 @@ function ReportModal({
                </div>
             </div>
 
-            {/* Chart Section */}
             <div className="space-y-4">
                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">IQC Trend Analysis (Levey-Jennings)</h4>
-               <div className="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm overflow-hidden h-[300px]">
+               <div className="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm overflow-hidden h-[220px]">
                   <LJChart results={results} config={config} level={level as any} instrumentId={instrument?.id || ''} />
                </div>
             </div>
@@ -562,7 +561,7 @@ function ReportModal({
             </div>
 
             {/* Verification Section - Page 1 */}
-            <div className="flex justify-between items-end pt-4 border-t border-dashed border-slate-200">
+            <div className="mt-auto flex justify-between items-end pt-4 border-t border-slate-200">
                <div className="flex space-x-12">
                   <div className="space-y-1">
                      <p className="text-[9px] font-black text-slate-500 uppercase tracking-tight">OPERATOR SIGNATURE</p>
@@ -574,7 +573,6 @@ function ReportModal({
                   </div>
                </div>
                <div className="text-right">
-                  <p className="text-[7px] font-bold text-slate-300">BK-LAB IQC v2.5 • Official Transcript</p>
                   <p className="text-[9px] font-black text-slate-800 italic uppercase">QA Verified</p>
                </div>
             </div>
@@ -582,7 +580,7 @@ function ReportModal({
 
           {/* Continuation Pages (Page 2, 3, 4, ...) */}
           {continuationPages.map((pageResults, index) => (
-            <div key={index} className="print:break-before-page pt-10 space-y-8 block min-h-[950px] print:min-h-0">
+            <div key={index} className="print:break-before-page pt-10 flex flex-col space-y-4 block print:min-h-[280mm]">
                {/* Header for Continuation Page */}
                <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
                   <div>
@@ -644,8 +642,7 @@ function ReportModal({
                   </div>
                </div>
 
-               {/* Verification for Continuation Pages */}
-               <div className="flex justify-between items-end pt-12 border-t border-dashed border-slate-200">
+               <div className="mt-auto flex justify-between items-end pt-8 border-t border-slate-200">
                   <div className="flex space-x-12">
                      <div className="space-y-1">
                         <p className="text-[9px] font-black text-slate-500 uppercase tracking-tight">OPERATOR SIGNATURE</p>
@@ -657,7 +654,6 @@ function ReportModal({
                      </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-[7px] font-bold text-slate-300">BK-LAB IQC v2.5 • Official Transcript (Cont.)</p>
                     <p className="text-[9px] font-black text-slate-800 italic uppercase">QA Verified</p>
                   </div>
                </div>
