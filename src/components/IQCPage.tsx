@@ -418,7 +418,7 @@ function ReportModal({
   return (
     <div 
       id="print-area"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto cursor-pointer print:relative print:bg-white print:p-0 print:overflow-visible print:z-0"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto cursor-pointer print:relative print:bg-white print:p-0 print:overflow-visible print:z-0 printable-report-container"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -457,9 +457,9 @@ function ReportModal({
            </div>
         </div>
 
-        <div className="p-8 space-y-8 bg-white print:p-8">
+        <div className="p-8 space-y-4 bg-white print:p-8">
           {/* Page 1 */}
-          <div className="flex flex-col space-y-4 print:min-h-[285mm] print:mb-0">
+          <div className="flex flex-col space-y-4 print:min-h-[275mm] print:mb-0">
             {/* Header */}
             <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
               <div>
@@ -508,44 +508,43 @@ function ReportModal({
                </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-2">
                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">IQC Trend Analysis (Levey-Jennings)</h4>
-               <div className="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm overflow-hidden h-[220px]">
+               <div className="bg-white p-1 rounded-2xl border border-slate-100 shadow-sm overflow-hidden h-[200px]">
                   <LJChart results={results} config={config} level={level as any} instrumentId={instrument?.id || ''} />
                </div>
             </div>
 
-            {/* History Table - Page 1 */}
-            <div className="space-y-4">
+            <div className="space-y-2">
                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">Analytical Run History</h4>
-               <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-                  <table className="w-full text-left text-[10px]">
+               <div className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm">
+                  <table className="w-full text-left text-[9px]">
                     <thead className="bg-[#0F4C81] text-white font-black uppercase tracking-wider">
                       <tr>
-                        <th className="px-4 py-3">Timestamp</th>
-                        <th className="px-4 py-3">Operator</th>
-                        <th className="px-4 py-3 text-center">Value</th>
-                        <th className="px-4 py-3 text-center">Z-Score</th>
-                        <th className="px-4 py-3 text-right">Status</th>
+                        <th className="px-3 py-1.5">Timestamp</th>
+                        <th className="px-3 py-1.5">Operator</th>
+                        <th className="px-3 py-1.5 text-center">Value</th>
+                        <th className="px-3 py-1.5 text-center">Z-Score</th>
+                        <th className="px-3 py-1.5 text-right">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 italic">
                       {firstPageResults.map(r => (
                         <tr key={r.id}>
-                          <td className="px-4 py-2 font-bold text-slate-500">
-                            {new Date(r.date).toLocaleString('th-TH', { 
-                              day: '2-digit', month: '2-digit', year: 'numeric',
-                              hour: '2-digit', minute: '2-digit'
-                            })}
+                          <td className="px-3 py-1 font-bold text-slate-500">
+                             {new Date(r.date).toLocaleString('th-TH', { 
+                               day: '2-digit', month: '2-digit', year: '2-digit',
+                               hour: '2-digit', minute: '2-digit'
+                             })}
                           </td>
-                          <td className="px-4 py-2 truncate max-w-[120px]">{r.operatorName}</td>
-                          <td className="px-4 py-2 font-black text-slate-800 text-center">{r.value}</td>
-                          <td className="px-4 py-2 text-slate-400 text-center font-bold">
+                          <td className="px-3 py-1 truncate max-w-[120px]">{r.operatorName}</td>
+                          <td className="px-3 py-1 font-black text-slate-800 text-center">{r.value}</td>
+                          <td className="px-3 py-1 text-slate-400 text-center font-bold">
                              {((r.value - levelParams!.mean) / levelParams!.sd).toFixed(2)}
                           </td>
-                          <td className="px-4 py-2 text-right">
+                          <td className="px-3 py-1 text-right">
                              {r.westgardViolations.length > 0 ? (
-                               <span className="text-red-700 font-bold text-[9px] bg-red-50 px-2 py-0.5 rounded border border-red-100">{r.westgardViolations.join(', ')}</span>
+                               <span className="text-red-700 font-bold text-[8px] bg-red-50 px-2 py-0.5 rounded border border-red-100">{r.westgardViolations.join(', ')}</span>
                              ) : <span className="text-emerald-600 font-black">PASS</span>}
                           </td>
                         </tr>
@@ -580,7 +579,7 @@ function ReportModal({
 
           {/* Continuation Pages (Page 2, 3, 4, ...) */}
           {continuationPages.map((pageResults, index) => (
-            <div key={index} className="print:break-before-page pt-10 flex flex-col space-y-4 block print:min-h-[285mm]">
+            <div key={index} className="print:break-before-page pt-10 flex flex-col space-y-4 block print:min-h-[275mm]">
                {/* Header for Continuation Page */}
                <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
                   <div>

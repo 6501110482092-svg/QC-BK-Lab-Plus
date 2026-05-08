@@ -31,8 +31,8 @@ export default function LJChart({ results, config, level, instrumentId }: LJChar
   const dataMax = Math.max(...filteredResults.map(r => r.value), mean + 3.1 * sd);
   const dataMin = Math.min(...filteredResults.map(r => r.value), mean - 3.1 * sd);
   const rangeSpread = Math.max(dataMax - dataMin, 0.0001);
-  const yMax = dataMax + rangeSpread * 0.12;
-  const yMin = dataMin - rangeSpread * 0.12;
+  const yMax = dataMax + rangeSpread * 0.05;
+  const yMin = dataMin - rangeSpread * 0.05;
 
   const getY = (val: number) => {
     const range = yMax - yMin;
