@@ -113,27 +113,37 @@ export default function LJChart({ results, config, level, instrumentId }: LJChar
         />
 
         {/* Data Points */}
-        {filteredResults.map((result, i) => (
-          <g key={result.id}>
-            <circle
-              cx={getX(i)}
-              cy={getY(result.value)}
-              r={result.westgardViolations.length > 0 ? "5" : "4"}
-              className={result.westgardViolations.length > 0 ? "fill-red-500" : "fill-[#0F4C81]"}
-              stroke="white"
-              strokeWidth="1.5"
-            />
-            <circle
-              cx={getX(i)}
-              cy={getY(result.value)}
-              r="10"
-              fill="transparent"
-              className="cursor-pointer"
-            >
-              <title>{`Val: ${result.value}\nDate: ${new Date(result.date).toLocaleString('th-TH')}\nBy: ${result.operatorName}`}</title>
-            </circle>
-          </g>
-        ))}
+        {filteredResults.map((result, i) => {
+          const hasViolations = result.westgardViolations.length > 0;
+          const isWarning = hasViolations && result.westgardViolations.some(v => v.toLowerCase().includes('warning'));
+          
+          let pointColor = "fill-[#0F4C81]";
+          if (hasViolations) {
+            pointColor = isWarning ? "fill-yellow-400" : "fill-red-500";
+          }
+
+          return (
+            <g key={result.id}>
+              <circle
+                cx={getX(i)}
+                cy={getY(result.value)}
+                r={hasViolations ? "5" : "4"}
+                className={pointColor}
+                stroke="white"
+                strokeWidth="1.5"
+              />
+              <circle
+                cx={getX(i)}
+                cy={getY(result.value)}
+                r="10"
+                fill="transparent"
+                className="cursor-pointer"
+              >
+                <title>{`Val: ${result.value}\nDate: ${new Date(result.date).toLocaleString('th-TH')}\nBy: ${result.operatorName}`}</title>
+              </circle>
+            </g>
+          );
+        })}
       </svg>
     </div>
   );

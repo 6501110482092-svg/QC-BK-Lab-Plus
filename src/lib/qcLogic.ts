@@ -20,16 +20,13 @@ export function checkWestgardRules(
   const currentAbsZ = Math.abs(currentZ);
   const s = sigma || 0;
 
-  // History of THIS level on THIS instrument
+  // 1. History of THIS level on THIS instrument
   const levelHistory = previousResults
     .filter((r) => r.level === level && r.testId === config.id && r.instrumentId === instrumentId)
-    .slice(-10); // Keep enough for 10x check
+    .slice(-10);
 
-  // 1-2s Warning (Standard Westgard)
-  if (currentAbsZ >= 2 && currentAbsZ < 3) {
-    violations.push('1-2s | Warning | Across Time');
-  }
-
+  // --- REJECTION RULES (Random/Systemic) ---
+  
   // 1-3s Rejection
   if (currentAbsZ >= 3) {
     violations.push('1-3s | Random Error | Across Time');
@@ -53,7 +50,6 @@ export function checkWestgardRules(
 
   if (s < 5) {
     // 4-1s (Across Time)
-    // Needs 3 previous + current = 4
     if (levelHistory.length >= 3) {
       const last4Z = [...levelHistory.slice(-3).map(r => getZScore(r.value, level)), currentZ];
       if (last4Z.length === 4 && last4Z.every(z => Math.abs(z) >= 1 && Math.sign(z) === Math.sign(last4Z[0]))) {
@@ -64,7 +60,6 @@ export function checkWestgardRules(
 
   if (s < 4) {
     // 10x (Across Time)
-    // Needs 9 previous + current = 10
     if (levelHistory.length >= 9) {
       const last10Z = [...levelHistory.slice(-9).map(r => getZScore(r.value, level)), currentZ];
       if (last10Z.length === 10 && last10Z.every(z => Math.sign(z) === Math.sign(last10Z[0]))) {
@@ -73,7 +68,7 @@ export function checkWestgardRules(
     }
   }
 
-  // 2. Across Material Logic (Current instrument, but check OTHER levels)
+  // 2. Across Material Logic
   const otherLevels: (1 | 2 | 3)[] = ([1, 2, 3] as (1 | 2 | 3)[]).filter(l => l !== level);
   
   const latestOfOtherLevels = otherLevels.map(l => {
@@ -98,7 +93,6 @@ export function checkWestgardRules(
       });
     }
 
-    // 4-1s (Across Material)
     const allRecentOnInstrument = [...previousResults.filter(r => r.testId === config.id && r.instrumentId === instrumentId).slice(-3), { value: currentValue, level }];
     if (allRecentOnInstrument.length >= 4 && s < 5) {
       const last4Z = allRecentOnInstrument.slice(-4).map(r => getZScore(r.value, r.level as any));
@@ -107,7 +101,6 @@ export function checkWestgardRules(
       }
     }
 
-    // 10x (Across Material)
     const allHistoryOnInstrument = [...previousResults.filter(r => r.testId === config.id && r.instrumentId === instrumentId), { value: currentValue, level }];
     if (allHistoryOnInstrument.length >= 10 && s < 4) {
       const last10Z = allHistoryOnInstrument.slice(-10).map(r => getZScore(r.value, r.level as any));
@@ -115,6 +108,12 @@ export function checkWestgardRules(
         violations.push('10x | Systemic Error | Across Material');
       }
     }
+  }
+
+  // --- WARNING RULE (1-2s) ---
+  // Only add if no other violations found
+  if (violations.length === 0 && currentAbsZ >= 2) {
+    violations.push('1-2s | Warning | Across Time');
   }
 
   return Array.from(new Set(violations));
