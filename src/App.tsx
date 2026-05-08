@@ -16,17 +16,10 @@ import Dashboard from './components/Dashboard';
 import IQCPage from './components/IQCPage';
 import SettingsPage from './components/SettingsPage';
 import AdminPanel from './components/AdminPanel';
+import AccountSettings from './components/AccountSettings';
 import EQAPage from './components/EQAPage';
 import { User, QCResult, QCConfig, Instrument, EQARecord } from './types';
 import { INSTRUMENTS, QC_CONFIGS } from './constants';
-
-const ADMIN_USER: User = {
-  id: 'admin-1',
-  name: 'System Admin',
-  licenseNumber: 'ADMIN',
-  password: 'admin',
-  role: 'ADMIN'
-};
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -41,6 +34,17 @@ export default function App() {
   const [users, setUsers] = useState<User[]>([]);
   const [savedCalculations, setSavedCalculations] = useState<any[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  const getAdminUser = () => {
+    const savedAdminPass = localStorage.getItem('qc_admin_password') || 'admin';
+    return {
+      id: 'admin-1',
+      name: 'System Admin',
+      licenseNumber: 'ADMIN',
+      password: savedAdminPass,
+      role: 'ADMIN' as const
+    };
+  };
 
   // 1. Initial Load from LocalStorage
   useEffect(() => {
@@ -66,7 +70,13 @@ export default function App() {
     const savedUser = localStorage.getItem('qc_current_user');
     if (savedUser) {
       try {
-        setUser(JSON.parse(savedUser));
+        const parsedUser = JSON.parse(savedUser);
+        // If it's admin, refresh with latest admin password
+        if (parsedUser.licenseNumber === 'ADMIN') {
+          setUser(getAdminUser());
+        } else {
+          setUser(parsedUser);
+        }
       } catch (e) {}
     }
     
@@ -86,9 +96,10 @@ export default function App() {
   }, [results, configs, instruments, users, eqaRecords, savedCalculations, isLoaded]);
 
   const handleLogin = (license: string, password: string) => {
-    if (license === 'ADMIN' && password === 'admin') {
-      setUser(ADMIN_USER);
-      localStorage.setItem('qc_current_user', JSON.stringify(ADMIN_USER));
+    const adminUser = getAdminUser();
+    if (license === 'ADMIN' && password === adminUser.password) {
+      setUser(adminUser);
+      localStorage.setItem('qc_current_user', JSON.stringify(adminUser));
       setAuthError(undefined);
       return;
     }
@@ -101,6 +112,24 @@ export default function App() {
     } else {
       setAuthError('Invalid credentials. Access denied.');
     }
+  };
+
+  const handleUpdatePassword = (currentPass: string, newPass: string) => {
+    if (!user) return false;
+    
+    if (user.password !== currentPass) return false;
+
+    const updatedUser = { ...user, password: newPass };
+    
+    if (user.role === 'ADMIN') {
+      localStorage.setItem('qc_admin_password', newPass);
+    } else {
+      setUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
+    }
+
+    setUser(updatedUser);
+    localStorage.setItem('qc_current_user', JSON.stringify(updatedUser));
+    return true;
   };
 
   const handleLogout = () => {
@@ -212,19 +241,7 @@ export default function App() {
       )}
 
       {activeTab === 'settings' && (
-        <div className="bg-white p-8 rounded-3xl border border-slate-200">
-           <h2 className="text-xl font-bold mb-4">Account Settings</h2>
-           <div className="space-y-4">
-              <div className="p-4 bg-slate-50 rounded-2xl flex justify-between items-center">
-                 <div>
-                    <p className="text-sm font-bold">{user.name}</p>
-                    <p className="text-xs text-slate-500">{user.role} - {user.licenseNumber}</p>
-                 </div>
-                 <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">ACTIVE</span>
-              </div>
-              <p className="text-xs text-slate-400 italic font-medium">To change password or update info, please contact the Lab Administrator.</p>
-           </div>
-        </div>
+        <AccountSettings user={user} onUpdatePassword={handleUpdatePassword} />
       )}
     </Layout>
   );
