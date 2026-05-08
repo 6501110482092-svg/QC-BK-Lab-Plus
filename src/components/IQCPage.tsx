@@ -131,7 +131,7 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 label-thai">ระดับการคุม (Control Level)</label>
                   <div className="flex bg-slate-100 p-1 rounded-xl">
-                    {[1, 2, 3].map(l => (
+                    {[1, 2, (config.level3 ? 3 : null)].filter(Boolean).map(l => (
                       <button
                         key={l}
                         type="button"

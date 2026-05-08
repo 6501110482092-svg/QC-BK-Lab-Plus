@@ -188,6 +188,12 @@ export default function SettingsPage({
                           >
                              Apply L2
                           </button>
+                          <button 
+                             onClick={() => applyCalcToLevel(calc, 3)}
+                             className="text-[10px] font-black px-2 py-1 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100"
+                          >
+                             Apply L3
+                          </button>
                        </div>
                        <button onClick={() => onDeleteCalculation(calc.id)} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
                         <Trash2 size={16} />
