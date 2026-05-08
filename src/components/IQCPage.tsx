@@ -463,7 +463,7 @@ function ReportModal({
             {/* Header */}
             <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
               <div>
-                <h1 className="text-2xl font-black text-[#0F4C81] mb-1 tracking-tighter uppercase italic">Internal Quality Control Report</h1>
+                <h1 className="text-3xl font-black text-[#0F4C81] mb-1 tracking-tighter uppercase italic">Internal Quality Control Report</h1>
                 <div className="flex items-center space-x-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                    <span className="text-slate-600">TEST: {config.testName}</span>
                    <span className="w-2 bg-slate-200 rounded-full h-2"></span>
@@ -471,7 +471,7 @@ function ReportModal({
                    <span className="w-2 bg-slate-200 rounded-full h-2"></span>
                    <span>DATE: {new Date().toLocaleDateString('th-TH')}</span>
                    <span className="w-2 bg-slate-200 rounded-full h-2"></span>
-                   <span className="text-slate-400 italic">UNITS: {config.unit}</span>
+                   <span className="text-slate-400 italic text-[9px]">UNITS: {config.unit}</span>
                 </div>
               </div>
               <div className="text-right">
@@ -481,30 +481,30 @@ function ReportModal({
             </div>
 
             {/* Statistics Grid */}
-            <div className="grid grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
-               <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Analyzer</p>
-                  <p className="text-xs font-black text-slate-700 truncate">{instrument?.name || 'N/A'}</p>
-                  <p className="text-[10px] font-bold text-slate-400">{instrument?.model || '-'}</p>
+            <div className="grid grid-cols-4 gap-6 bg-slate-50/50 p-6 rounded-2xl border border-slate-200">
+               <div className="space-y-1">
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Analyzer</p>
+                  <p className="text-sm font-black text-slate-800 truncate">{instrument?.name || 'N/A'}</p>
+                  <p className="text-[11px] font-bold text-slate-400">{instrument?.model || '-'}</p>
                </div>
-               <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Target Parameters</p>
-                  <div className="text-[11px] font-bold text-slate-700 flex flex-wrap gap-x-2">
-                     <span>M: <span className="font-black">{levelParams?.mean}</span></span>
-                     <span>SD: <span className="font-black">{levelParams?.sd}</span></span>
-                     <span>CV: <span className="text-emerald-600 font-black">{levelParams?.cv}%</span></span>
+               <div className="space-y-1">
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Target Parameters</p>
+                  <div className="text-[13px] font-black text-slate-700 flex flex-wrap gap-x-3">
+                     <span>M: <span className="text-[#0F4C81]">{levelParams?.mean}</span></span>
+                     <span>SD: <span className="text-slate-600">{levelParams?.sd}</span></span>
+                     <span>CV: <span className="text-emerald-600">{levelParams?.cv}%</span></span>
                   </div>
                </div>
-               <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Metrics</p>
-                  <div className="text-[11px] font-bold text-slate-700 flex flex-wrap gap-x-2">
-                     <span>Sigma: <span className="font-black text-[#0F4C81]">{eqa?.sigma.toFixed(2) || 'N/A'}</span></span>
-                     <span>Bias%: <span className="font-black">{eqa?.bias.toFixed(2) || '0'}%</span></span>
+               <div className="space-y-1">
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">QC Metrics</p>
+                  <div className="text-[13px] font-black text-slate-700 flex flex-wrap gap-x-3">
+                     <span>Sigma: <span className="text-[#0F4C81]">{eqa?.sigma.toFixed(2) || 'N/A'}</span></span>
+                     <span>Bias%: <span className="text-amber-600">{eqa?.bias.toFixed(2) || '0'}%</span></span>
                   </div>
                </div>
-               <div className="text-right border-l border-slate-200 pl-4">
-                  <p className="text-[10px] font-black text-slate-400 uppercase">Unit</p>
-                  <p className="text-2xl font-black text-[#0F4C81]">{config.unit}</p>
+               <div className="text-right border-l-2 border-white pl-6 flex flex-col justify-center">
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider leading-none">Unit</p>
+                  <p className="text-base font-black text-[#0F4C81] mt-2">{config.unit}</p>
                </div>
             </div>
 
@@ -518,7 +518,7 @@ function ReportModal({
             <div className="space-y-4">
                <h4 className="text-[12px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">Analytical Run History</h4>
                <div className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm">
-                  <table className="w-full text-left text-[11px]">
+                  <table className="w-full text-left text-[8px]">
                     <thead className="bg-[#0F4C81] text-white font-black uppercase tracking-wider">
                       <tr>
                         <th className="px-4 py-3">Timestamp</th>
@@ -538,14 +538,14 @@ function ReportModal({
                              })}
                           </td>
                           <td className="px-4 py-2 truncate max-w-[120px] font-bold text-slate-700">{r.operatorName}</td>
-                          <td className="px-4 py-2 font-black text-black text-center text-lg tabular-nums tracking-tighter">{r.value}</td>
+                          <td className="px-4 py-2 font-black text-black text-center text-[13px] tabular-nums tracking-tighter">{r.value}</td>
                           <td className="px-4 py-2 text-slate-400 text-center font-black">
                              {((r.value - levelParams!.mean) / levelParams!.sd).toFixed(2)}
                           </td>
                           <td className="px-4 py-2 text-right">
                              {r.westgardViolations.length > 0 ? (
-                               <span className="text-red-700 font-black text-[10px] bg-red-50 px-2 py-1 rounded border border-red-100">{r.westgardViolations.join(', ')}</span>
-                             ) : <span className="text-emerald-600 font-black text-sm">PASS</span>}
+                               <span className="text-red-700 font-black text-[8px] bg-red-50 px-2 py-1 rounded border border-red-100">{r.westgardViolations.join(', ')}</span>
+                             ) : <span className="text-emerald-600 font-black text-xs">PASS</span>}
                           </td>
                         </tr>
                       ))}
@@ -583,13 +583,13 @@ function ReportModal({
                {/* Header for Continuation Page */}
                 <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
                   <div>
-                    <h1 className="text-2xl font-black text-[#0F4C81] mb-1 tracking-tighter uppercase italic">Internal Quality Control Report (Cont.)</h1>
+                    <h1 className="text-3xl font-black text-[#0F4C81] mb-1 tracking-tighter uppercase italic">Internal Quality Control Report (Cont.)</h1>
                     <div className="flex items-center space-x-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                        <span className="text-slate-600">TEST: {config.testName}</span>
                        <span className="w-2 bg-slate-200 rounded-full h-2"></span>
                        <span className="text-slate-600">LV: {level}</span>
                        <span className="w-2 bg-slate-200 rounded-full h-2"></span>
-                       <span className="text-slate-400 italic">UNITS: {config.unit}</span>
+                       <span className="text-slate-400 italic text-[9px]">UNITS: {config.unit}</span>
                     </div>
                   </div>
                   <div className="text-right hidden print:block">
@@ -601,7 +601,7 @@ function ReportModal({
                <div className="space-y-4">
                   <h4 className="text-[12px] font-black text-slate-400 uppercase tracking-widest border-l-4 border-[#0F4C81] pl-3">Extended Run History</h4>
                   <div className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm">
-                    <table className="w-full text-left text-[11px]">
+                    <table className="w-full text-left text-[8px]">
                       <thead className="bg-[#0F4C81] text-white font-black uppercase tracking-wider">
                         <tr>
                           <th className="px-4 py-3">Timestamp</th>
@@ -621,14 +621,14 @@ function ReportModal({
                               })}
                             </td>
                             <td className="px-4 py-2 truncate max-w-[150px] font-bold text-slate-600">{r.operatorName}</td>
-                            <td className="px-4 py-2 font-black text-slate-800 text-center text-lg">{r.value}</td>
+                            <td className="px-4 py-2 font-black text-slate-800 text-center text-[13px]">{r.value}</td>
                             <td className="px-4 py-2 text-slate-400 text-center font-black">
                                {((r.value - levelParams!.mean) / levelParams!.sd).toFixed(2)}
                             </td>
                             <td className="px-4 py-2 text-right">
                                {r.westgardViolations.length > 0 ? (
-                                 <span className="text-red-700 font-bold text-[10px] bg-red-50 px-2 py-1 rounded border border-red-100">{r.westgardViolations.join(', ')}</span>
-                               ) : <span className="text-emerald-600 font-black text-sm">PASS</span>}
+                                 <span className="text-red-700 font-bold text-[7px] bg-red-50 px-2 py-1 rounded border border-red-100">{r.westgardViolations.join(', ')}</span>
+                               ) : <span className="text-emerald-600 font-black text-xs">PASS</span>}
                             </td>
                           </tr>
                         ))}
