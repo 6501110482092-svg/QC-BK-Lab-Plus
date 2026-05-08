@@ -94,273 +94,275 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
   const levelParams = level === 1 ? config.level1 : (level === 2 ? config.level2 : config.level3);
 
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-        {/* Input Form */}
-        <div className="xl:col-span-4 space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm transition-all hover:border-[#0F4C81]/30">
-            <div className="flex items-center space-x-2 mb-6 text-[#0F4C81]">
-              <Plus size={20} />
-              <h3 className="font-bold">บันทึกผลการตรวจ IQC</h3>
-            </div>
-            
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 label-thai">รายการทดสอบ (Test Parameter)</label>
-                <select 
-                  value={selectedTest}
-                  onChange={(e) => setSelectedTest(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none"
-                >
-                  {configs.map(c => <option key={c.id} value={c.id}>{c.testName}</option>)}
-                </select>
+    <>
+      <div className="space-y-8 no-print">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+          {/* Input Form */}
+          <div className="xl:col-span-4 space-y-6">
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm transition-all hover:border-[#0F4C81]/30">
+              <div className="flex items-center space-x-2 mb-6 text-[#0F4C81]">
+                <Plus size={20} />
+                <h3 className="font-bold">บันทึกผลการตรวจ IQC</h3>
               </div>
-
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 label-thai">เครื่องวิเคราะห์ (Instrument)</label>
-                <select 
-                  value={selectedInst}
-                  onChange={(e) => setSelectedInst(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium outline-none"
-                >
-                  {instruments.map(i => <option key={i.id} value={i.id}>{i.name} ({i.model})</option>)}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-1 gap-6">
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 label-thai">ระดับการคุม (Control Level)</label>
-                  <div className="flex bg-slate-100 p-1 rounded-xl">
-                    {[1, 2, (config.level3 ? 3 : null)].filter(Boolean).map(l => (
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 label-thai">รายการทดสอบ (Test Parameter)</label>
+                  <select 
+                    value={selectedTest}
+                    onChange={(e) => setSelectedTest(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none"
+                  >
+                    {configs.map(c => <option key={c.id} value={c.id}>{c.testName}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 label-thai">เครื่องวิเคราะห์ (Instrument)</label>
+                  <select 
+                    value={selectedInst}
+                    onChange={(e) => setSelectedInst(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium outline-none"
+                  >
+                    {instruments.map(i => <option key={i.id} value={i.id}>{i.name} ({i.model})</option>)}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 label-thai">ระดับการคุม (Control Level)</label>
+                    <div className="flex bg-slate-100 p-1 rounded-xl">
+                      {[1, 2, (config.level3 ? 3 : null)].filter(Boolean).map(l => (
+                        <button
+                          key={l}
+                          type="button"
+                          onClick={() => setLevel(l as any)}
+                          className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
+                            level === l ? 'bg-white text-[#0F4C81] shadow-sm' : 'text-slate-500'
+                          }`}
+                        >
+                          LV{l}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 label-thai">ผลการวิเคราะห์ ({config.unit})</label>
+                    <input
+                      type="number" step="0.001" required value={value}
+                      onChange={(e) => setValue(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono focus:ring-2 focus:ring-[#0F4C81]/10 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <button type="submit" className="w-full bg-[#0F4C81] text-white font-bold py-3.5 rounded-xl hover:scale-[1.01] transition-transform shadow-lg shadow-[#0F4C81]/20">
+                  เพิ่มข้อมูล IQC (Add Run)
+                </button>
+              </form>
+            </div>
+
+            {/* Six Sigma Performance Card */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm overflow-hidden relative group">
+              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
+                 <TrendingUp size={80} />
+              </div>
+              <div className="flex items-center space-x-2 mb-6 text-[#0F4C81]">
+                 <Award size={20} />
+                 <h3 className="font-bold">Six Sigma Performance</h3>
+              </div>
+              
+              {latestEQA ? (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                     <div className="text-center p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Sigma (จาก EQA)</p>
+                        <p className={`text-2xl font-black ${latestEQA.sigma >= 6 ? 'text-emerald-600' : latestEQA.sigma >= 3 ? 'text-amber-500' : 'text-red-500'}`}>
+                          {latestEQA.sigma.toFixed(2)}
+                        </p>
+                     </div>
+                     <div className="text-center p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Bias %</p>
+                        <p className="text-2xl font-black text-slate-700">
+                          {latestEQA.bias.toFixed(2)}%
+                        </p>
+                     </div>
+                  </div>
+
+                  <div className="flex items-start space-x-3 p-4 bg-[#0F4C81]/5 rounded-xl border border-[#0F4C81]/10">
+                    <ShieldAlert size={18} className="text-[#0F4C81] shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-[10px] font-black text-[#0F4C81] uppercase tracking-wider mb-1">คำแนะนำทางเทคนิค</p>
+                      <p className="text-[11px] text-[#0F4C81] leading-relaxed italic font-medium">
+                        "{getThaiSigmaRecommendation(latestEQA.sigma, latestEQA.bias, latestEQA.cv)}"
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <p className="text-slate-400 text-xs font-bold px-4">ยังไม่มีข้อมูล EQA สำหรับชุดตรวจนี้ กรุณาบันทึกข้อมูลในเมนู EQA ก่อน</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Charts and History */}
+          <div className="xl:col-span-8 space-y-8">
+            <div ref={exportRef} id="export-area" className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex flex-col space-y-1">
+                  <div className="flex items-center space-x-3 text-[#0F4C81]">
+                    <Activity size={20} />
+                    <h3 className="font-bold">Levey-Jennings: {config.testName} (Level {level})</h3>
+                  </div>
+                  <div className="flex items-center space-x-2 mt-2">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Range:</span>
+                    {(['7d', '30d', '3m', 'all'] as const).map((r) => (
                       <button
-                        key={l}
-                        type="button"
-                        onClick={() => setLevel(l as any)}
-                        className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
-                          level === l ? 'bg-white text-[#0F4C81] shadow-sm' : 'text-slate-500'
+                        key={r}
+                        onClick={() => {
+                          setDateRange(r);
+                          setStartDate('');
+                          setEndDate('');
+                        }}
+                        className={`text-[9px] font-black px-2 py-0.5 rounded-full border transition-all ${
+                          dateRange === r && !startDate && !endDate
+                          ? 'bg-[#0F4C81] text-white border-[#0F4C81]' 
+                          : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'
                         }`}
                       >
-                        LV{l}
+                        {r === '7d' ? '7 วันล่าสุด' : r === '30d' ? '30 วันล่าสุด' : r === '3m' ? '3 เดือนล่าสุด' : 'ทั้งหมด'}
                       </button>
                     ))}
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 label-thai">ผลการวิเคราะห์ ({config.unit})</label>
-                  <input
-                    type="number" step="0.001" required value={value}
-                    onChange={(e) => setValue(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono focus:ring-2 focus:ring-[#0F4C81]/10 outline-none"
-                  />
-                </div>
-              </div>
-
-              <button type="submit" className="w-full bg-[#0F4C81] text-white font-bold py-3.5 rounded-xl hover:scale-[1.01] transition-transform shadow-lg shadow-[#0F4C81]/20">
-                เพิ่มข้อมูล IQC (Add Run)
-              </button>
-            </form>
-          </div>
-
-          {/* Six Sigma Performance Card */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm overflow-hidden relative group">
-            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
-               <TrendingUp size={80} />
-            </div>
-            <div className="flex items-center space-x-2 mb-6 text-[#0F4C81]">
-               <Award size={20} />
-               <h3 className="font-bold">Six Sigma Performance</h3>
-            </div>
-            
-            {latestEQA ? (
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                   <div className="text-center p-3 rounded-xl bg-slate-50 border border-slate-100">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Sigma (จาก EQA)</p>
-                      <p className={`text-2xl font-black ${latestEQA.sigma >= 6 ? 'text-emerald-600' : latestEQA.sigma >= 3 ? 'text-amber-500' : 'text-red-500'}`}>
-                        {latestEQA.sigma.toFixed(2)}
-                      </p>
-                   </div>
-                   <div className="text-center p-3 rounded-xl bg-slate-50 border border-slate-100">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Bias %</p>
-                      <p className="text-2xl font-black text-slate-700">
-                        {latestEQA.bias.toFixed(2)}%
-                      </p>
-                   </div>
-                </div>
-
-                <div className="flex items-start space-x-3 p-4 bg-[#0F4C81]/5 rounded-xl border border-[#0F4C81]/10">
-                  <ShieldAlert size={18} className="text-[#0F4C81] shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-[10px] font-black text-[#0F4C81] uppercase tracking-wider mb-1">คำแนะนำทางเทคนิค</p>
-                    <p className="text-[11px] text-[#0F4C81] leading-relaxed italic font-medium">
-                      "{getThaiSigmaRecommendation(latestEQA.sigma, latestEQA.bias, latestEQA.cv)}"
-                    </p>
+                  <div className="flex items-center space-x-2 mt-2 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Custom:</span>
+                    <input 
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => {
+                        setStartDate(e.target.value);
+                        if (e.target.value) setDateRange('all');
+                      }}
+                      className="bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-600 focus:outline-none focus:ring-1 focus:ring-[#0F4C81]"
+                    />
+                    <span className="text-slate-300 text-[10px]">-</span>
+                    <input 
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => {
+                        setEndDate(e.target.value);
+                        if (e.target.value) setDateRange('all');
+                      }}
+                      className="bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-600 focus:outline-none focus:ring-1 focus:ring-[#0F4C81]"
+                    />
+                    {(startDate || endDate) && (
+                      <button 
+                        onClick={() => {
+                          setStartDate('');
+                          setEndDate('');
+                          setDateRange('30d');
+                        }}
+                        className="text-[9px] font-black text-red-500 hover:text-red-700 ml-2"
+                      >
+                        CLEAR
+                      </button>
+                    )}
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <p className="text-slate-400 text-xs font-bold px-4">ยังไม่มีข้อมูล EQA สำหรับชุดตรวจนี้ กรุณาบันทึกข้อมูลในเมนู EQA ก่อน</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Charts and History */}
-        <div className="xl:col-span-8 space-y-8">
-          <div ref={exportRef} id="export-area" className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex flex-col space-y-1">
-                <div className="flex items-center space-x-3 text-[#0F4C81]">
-                  <Activity size={20} />
-                  <h3 className="font-bold">Levey-Jennings: {config.testName} (Level {level})</h3>
-                </div>
-                <div className="flex items-center space-x-2 mt-2">
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Range:</span>
-                  {(['7d', '30d', '3m', 'all'] as const).map((r) => (
-                    <button
-                      key={r}
-                      onClick={() => {
-                        setDateRange(r);
-                        setStartDate('');
-                        setEndDate('');
-                      }}
-                      className={`text-[9px] font-black px-2 py-0.5 rounded-full border transition-all ${
-                        dateRange === r && !startDate && !endDate
-                        ? 'bg-[#0F4C81] text-white border-[#0F4C81]' 
-                        : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'
-                      }`}
-                    >
-                      {r === '7d' ? '7 วันล่าสุด' : r === '30d' ? '30 วันล่าสุด' : r === '3m' ? '3 เดือนล่าสุด' : 'ทั้งหมด'}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="flex items-center space-x-2 mt-2 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Custom:</span>
-                  <input 
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => {
-                      setStartDate(e.target.value);
-                      if (e.target.value) setDateRange('all');
-                    }}
-                    className="bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-600 focus:outline-none focus:ring-1 focus:ring-[#0F4C81]"
-                  />
-                  <span className="text-slate-300 text-[10px]">-</span>
-                  <input 
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => {
-                      setEndDate(e.target.value);
-                      if (e.target.value) setDateRange('all');
-                    }}
-                    className="bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-600 focus:outline-none focus:ring-1 focus:ring-[#0F4C81]"
-                  />
-                  {(startDate || endDate) && (
-                    <button 
-                      onClick={() => {
-                        setStartDate('');
-                        setEndDate('');
-                        setDateRange('30d');
-                      }}
-                      className="text-[9px] font-black text-red-500 hover:text-red-700 ml-2"
-                    >
-                      CLEAR
-                    </button>
-                  )}
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={() => setShowReport(true)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-[#0F4C81] hover:bg-[#0b3a63] text-white rounded-xl text-xs font-black transition-all shadow-lg shadow-blue-900/20"
+                  >
+                    <FileText size={14} />
+                    <span>View Full Report</span>
+                  </button>
                 </div>
               </div>
-              <div className="flex space-x-2">
-                <button 
-                  onClick={() => setShowReport(true)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-[#0F4C81] hover:bg-[#0b3a63] text-white rounded-xl text-xs font-black transition-all shadow-lg shadow-blue-900/20"
-                >
-                  <FileText size={14} />
-                  <span>View Full Report</span>
-                </button>
+              <LJChart results={filteredResults} config={config} level={level} instrumentId={selectedInst} />
+              
+              {/* Sigma Summary in Export Area */}
+              <div className="mt-8 grid grid-cols-2 md:grid-cols-5 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                 <div>
+                   <p className="text-[9px] font-bold text-slate-400 uppercase">Target Mean</p>
+                   <p className="font-bold text-slate-700">{levelParams?.mean}</p>
+                 </div>
+                 <div>
+                   <p className="text-[9px] font-bold text-slate-400 uppercase">Target SD</p>
+                   <p className="font-bold text-slate-700 text-sm">{levelParams?.sd}</p>
+                 </div>
+                 <div>
+                   <p className="text-[9px] font-bold text-slate-400 uppercase">Target CV %</p>
+                   <p className="font-bold text-emerald-600 text-sm">{levelParams?.cv?.toFixed(2)}%</p>
+                 </div>
+                 <div>
+                   <p className="text-[9px] font-bold text-slate-400 uppercase">Bias %</p>
+                   <p className="font-bold text-slate-700 text-sm">{latestEQA?.bias.toFixed(2) || '0.00'}%</p>
+                 </div>
+                 <div className="md:border-l md:pl-4">
+                   <p className="text-[9px] font-bold text-slate-400 uppercase">Six Sigma</p>
+                   <p className={`font-black text-sm ${latestEQA && latestEQA.sigma >= 6 ? 'text-emerald-600' : 'text-[#0F4C81]'}`}>
+                     {latestEQA?.sigma.toFixed(2) || 'N/A'}
+                   </p>
+                 </div>
               </div>
             </div>
-            <LJChart results={filteredResults} config={config} level={level} instrumentId={selectedInst} />
-            
-            {/* Sigma Summary in Export Area */}
-            <div className="mt-8 grid grid-cols-2 md:grid-cols-5 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-               <div>
-                 <p className="text-[9px] font-bold text-slate-400 uppercase">Target Mean</p>
-                 <p className="font-bold text-slate-700">{levelParams?.mean}</p>
-               </div>
-               <div>
-                 <p className="text-[9px] font-bold text-slate-400 uppercase">Target SD</p>
-                 <p className="font-bold text-slate-700 text-sm">{levelParams?.sd}</p>
-               </div>
-               <div>
-                 <p className="text-[9px] font-bold text-slate-400 uppercase">Target CV %</p>
-                 <p className="font-bold text-emerald-600 text-sm">{levelParams?.cv?.toFixed(2)}%</p>
-               </div>
-               <div>
-                 <p className="text-[9px] font-bold text-slate-400 uppercase">Bias %</p>
-                 <p className="font-bold text-slate-700 text-sm">{latestEQA?.bias.toFixed(2) || '0.00'}%</p>
-               </div>
-               <div className="md:border-l md:pl-4">
-                 <p className="text-[9px] font-bold text-slate-400 uppercase">Six Sigma</p>
-                 <p className={`font-black text-sm ${latestEQA && latestEQA.sigma >= 6 ? 'text-emerald-600' : 'text-[#0F4C81]'}`}>
-                   {latestEQA?.sigma.toFixed(2) || 'N/A'}
-                 </p>
-               </div>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center space-x-2">
-               <ShieldAlert size={18} className="text-slate-400" />
-               <h3 className="font-bold">Recent Level {level} Runs</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-slate-50 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  <tr>
-                    <th className="px-6 py-3">Timestamp</th>
-                    <th className="px-6 py-3">Operator</th>
-                    <th className="px-6 py-3">Value</th>
-                    <th className="px-6 py-3">Sigma-Z</th>
-                    <th className="px-6 py-3">Westgard</th>
-                    {currentUser.role === 'ADMIN' && <th className="px-6 py-3 text-right">Actions</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                   {filteredResults
-                    .slice().reverse().map(r => (
-                      <tr key={r.id}>
-                        <td className="px-6 py-3 text-xs">{new Date(r.date).toLocaleString('th-TH')}</td>
-                        <td className="px-6 py-3 font-medium text-slate-500">{r.operatorName || 'System'}</td>
-                        <td className="px-6 py-3 font-mono font-bold text-slate-700">{r.value}</td>
-                        <td className="px-6 py-3 font-mono text-slate-400">
-                           {((r.value - currentLevelParams!.mean) / currentLevelParams!.sd).toFixed(2)}
-                        </td>
-                        <td className="px-6 py-3">
-                           {r.westgardViolations.length > 0 ? (
-                             <span className="text-red-500 font-bold px-2 py-0.5 bg-red-50 rounded text-xs">
-                                {r.westgardViolations.join(', ')}
-                             </span>
-                           ) : <span className="text-emerald-500 font-bold text-xs ring-1 ring-emerald-100 px-2 py-0.5 rounded">PASSED</span>}
-                        </td>
-                        {currentUser.role === 'ADMIN' && (
-                          <td className="px-6 py-3 text-right">
-                             <button 
-                               onClick={() => {
-                                 if(window.confirm('Delete this record?')) onDeleteResult(r.id);
-                               }}
-                               className="text-red-400 hover:text-red-600 font-bold text-xs"
-                             >
-                               Delete
-                             </button>
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 flex items-center space-x-2">
+                 <ShieldAlert size={18} className="text-slate-400" />
+                 <h3 className="font-bold">Recent Level {level} Runs</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-50 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                    <tr>
+                      <th className="px-6 py-3">Timestamp</th>
+                      <th className="px-6 py-3">Operator</th>
+                      <th className="px-6 py-3">Value</th>
+                      <th className="px-6 py-3">Sigma-Z</th>
+                      <th className="px-6 py-3">Westgard</th>
+                      {currentUser.role === 'ADMIN' && <th className="px-6 py-3 text-right">Actions</th>}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                     {filteredResults
+                      .slice().reverse().map(r => (
+                        <tr key={r.id}>
+                          <td className="px-6 py-3 text-xs">{new Date(r.date).toLocaleString('th-TH')}</td>
+                          <td className="px-6 py-3 font-medium text-slate-500">{r.operatorName || 'System'}</td>
+                          <td className="px-6 py-3 font-mono font-bold text-slate-700">{r.value}</td>
+                          <td className="px-6 py-3 font-mono text-slate-400">
+                             {((r.value - currentLevelParams!.mean) / currentLevelParams!.sd).toFixed(2)}
                           </td>
-                        )}
-                      </tr>
-                   ))}
-                </tbody>
-              </table>
+                          <td className="px-6 py-3">
+                             {r.westgardViolations.length > 0 ? (
+                               <span className="text-red-500 font-bold px-2 py-0.5 bg-red-50 rounded text-xs">
+                                  {r.westgardViolations.join(', ')}
+                               </span>
+                             ) : <span className="text-emerald-500 font-bold text-xs ring-1 ring-emerald-100 px-2 py-0.5 rounded">PASSED</span>}
+                          </td>
+                          {currentUser.role === 'ADMIN' && (
+                            <td className="px-6 py-3 text-right">
+                               <button 
+                                 onClick={() => {
+                                   if(window.confirm('Delete this record?')) onDeleteResult(r.id);
+                                 }}
+                                 className="text-red-400 hover:text-red-600 font-bold text-xs"
+                               >
+                                 Delete
+                               </button>
+                            </td>
+                          )}
+                        </tr>
+                     ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -376,7 +378,7 @@ export default function IQCPage({ results, onAddResult, onDeleteResult, configs,
         eqa={latestEQA}
         results={filteredResults}
       />
-    </div>
+    </>
   );
 }
 
